@@ -63,6 +63,76 @@ class EntryResourceTest extends TestCase
             ->assertSchemaStateSet(['slug' => 'why-flat-file-cms-is-the-future']);
     }
 
+    public function test_an_auto_filled_slug_is_numbered_when_the_address_is_taken(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Entry::factory()->create(['slug' => 'welcome']);
+        Entry::factory()->create(['slug' => 'welcome-2']);
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm(['type' => EntryType::Page->value, 'title' => 'Welcome'])
+            ->assertSchemaStateSet(['slug' => 'welcome-3']);
+    }
+
+    public function test_an_auto_filled_post_slug_is_only_numbered_against_its_own_blog(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $news = Entry::factory()->blog()->create(['slug' => 'news']);
+        $articles = Entry::factory()->blog()->create(['slug' => 'articles']);
+        Entry::factory()->post($articles)->create(['slug' => 'welcome']);
+
+        $component = Livewire::test(CreateEntry::class)
+            ->fillForm(['type' => EntryType::Post->value, 'blog_id' => $news->id, 'title' => 'Welcome'])
+            ->assertSchemaStateSet(['slug' => 'welcome']);
+
+        $component
+            ->fillForm(['blog_id' => $articles->id])
+            ->assertSchemaStateSet(['slug' => 'welcome-2']);
+    }
+
+    public function test_a_slug_typed_by_hand_is_kept_when_the_title_changes(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm(['title' => 'About'])
+            ->fillForm(['slug' => 'about-us'])
+            ->fillForm(['title' => 'About Light CMS'])
+            ->assertSchemaStateSet(['slug' => 'about-us']);
+    }
+
+    public function test_clearing_the_slug_turns_auto_fill_back_on(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm(['title' => 'About'])
+            ->fillForm(['slug' => 'about-us'])
+            ->fillForm(['slug' => ''])
+            ->fillForm(['title' => 'About Light CMS'])
+            ->assertSchemaStateSet(['slug' => 'about-light-cms']);
+    }
+
+    public function test_changing_the_title_of_an_existing_entry_keeps_its_slug(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $entry = Entry::factory()->create(['title' => 'About', 'slug' => 'about']);
+
+        Livewire::test(EditEntry::class, ['record' => $entry->getRouteKey()])
+            ->fillForm(['title' => 'About Us'])
+            ->assertSchemaStateSet(['slug' => 'about']);
+    }
+
+    public function test_a_taken_address_is_reported_as_soon_as_the_slug_is_entered(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Entry::factory()->create(['slug' => 'about']);
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm(['type' => EntryType::Page->value, 'slug' => 'about'])
+            ->assertHasFormErrors(['slug']);
+    }
+
     public function test_a_page_slug_can_contain_slashes(): void
     {
         $this->actingAs(User::factory()->create());

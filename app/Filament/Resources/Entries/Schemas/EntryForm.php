@@ -7,6 +7,7 @@ use App\EntryType;
 use App\Models\Entry;
 use Closure;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -17,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Livewire\Component;
 
 class EntryForm
 {
@@ -34,14 +36,18 @@ class EntryForm
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(function (string $operation, ?string $state, Set $set): void {
-                                        if ($operation === 'create') {
-                                            $set('slug', Str::slug($state ?? ''));
-                                        }
-                                    }),
+                                    ->afterStateUpdated(fn (string $operation, Get $get, Set $set, ?Entry $record) => self::fillSlug($operation, $get, $set, $record)),
+                                Hidden::make('slug_is_manual')
+                                    ->default(false)
+                                    ->dehydrated(false),
                                 TextInput::make('slug')
                                     ->required()
                                     ->maxLength(255)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (?string $state, Set $set, Component $livewire, TextInput $component): void {
+                                        $set('slug_is_manual', filled($state));
+                                        $livewire->validateOnly($component->getStatePath());
+                                    })
                                     ->prefix(fn (Get $get): ?string => self::blogPathPrefix($get))
                                     ->regex(fn (Get $get): string => self::isPost($get)
                                         ? '/^[a-z0-9]+(?:-[a-z0-9]+)*$/'
@@ -50,18 +56,9 @@ class EntryForm
                                         'regex' => 'Use lowercase letters, numbers and hyphens only. Pages and blogs may also use slashes.',
                                     ])
                                     ->rule(fn (Get $get, ?Entry $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {
-                                        $entry = new Entry([
-                                            'type' => $get('type'),
-                                            'blog_id' => self::isPost($get) ? $get('blog_id') : null,
-                                        ]);
-                                        $path = $entry->buildPath((string) $value);
+                                        $path = self::pathFor($get, (string) $value);
 
-                                        $isTaken = Entry::query()
-                                            ->where('path', $path)
-                                            ->when($record, fn (Builder $query) => $query->whereKeyNot($record->getKey()))
-                                            ->exists();
-
-                                        if ($isTaken) {
+                                        if (self::isPathTaken($path, $record)) {
                                             $fail("The address /{$path} is already used by another entry.");
                                         }
                                     })
@@ -89,6 +86,7 @@ class EntryForm
                                     ->default(EntryType::Page)
                                     ->required()
                                     ->live()
+                                    ->afterStateUpdated(fn (string $operation, Get $get, Set $set, ?Entry $record) => self::fillSlug($operation, $get, $set, $record))
                                     ->disabled(fn (?Entry $record): bool => $record?->type === EntryType::Blog && $record->posts()->exists())
                                     ->helperText(fn (?Entry $record): ?string => $record?->type === EntryType::Blog && $record->posts()->exists()
                                         ? 'A blog with posts can\'t change type.'
@@ -103,6 +101,7 @@ class EntryForm
                                     ->visible(fn (Get $get): bool => self::isPost($get))
                                     ->required(fn (Get $get): bool => self::isPost($get))
                                     ->live()
+                                    ->afterStateUpdated(fn (string $operation, Get $get, Set $set, ?Entry $record) => self::fillSlug($operation, $get, $set, $record))
                                     ->preload(),
                                 Select::make('status')
                                     ->options(EntryStatus::class)
@@ -128,6 +127,54 @@ class EntryForm
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * While creating an entry, fill the slug from the title, numbering it
+     * ("welcome-2") if the address is taken. Stops once the slug is typed by hand.
+     */
+    private static function fillSlug(string $operation, Get $get, Set $set, ?Entry $record): void
+    {
+        if ($operation !== 'create' || $get('slug_is_manual')) {
+            return;
+        }
+
+        $baseSlug = Str::slug($get('title') ?? '');
+
+        if ($baseSlug === '') {
+            $set('slug', null);
+
+            return;
+        }
+
+        $slug = $baseSlug;
+
+        for ($number = 2; self::isPathTaken(self::pathFor($get, $slug), $record); $number++) {
+            $slug = "{$baseSlug}-{$number}";
+        }
+
+        $set('slug', $slug);
+    }
+
+    /**
+     * The full address an entry would have with the form's current type and blog.
+     */
+    private static function pathFor(Get $get, string $slug): string
+    {
+        $entry = new Entry([
+            'type' => $get('type'),
+            'blog_id' => self::isPost($get) ? $get('blog_id') : null,
+        ]);
+
+        return $entry->buildPath($slug);
+    }
+
+    private static function isPathTaken(string $path, ?Entry $record): bool
+    {
+        return Entry::query()
+            ->where('path', $path)
+            ->when($record, fn (Builder $query) => $query->whereKeyNot($record->getKey()))
+            ->exists();
     }
 
     private static function isPost(Get $get): bool
