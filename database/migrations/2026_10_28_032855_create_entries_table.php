@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('type')->index();
             $table->string('title');
-            $table->string('slug')->unique();
+            $table->string('slug');
+            $table->string('path')->unique();
+            $table->foreignId('blog_id')->nullable()->constrained('entries')->restrictOnDelete();
             $table->longText('body')->nullable();
             $table->string('status')->default('draft');
             $table->timestamp('published_at')->nullable();

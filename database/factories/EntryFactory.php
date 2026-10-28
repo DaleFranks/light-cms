@@ -33,12 +33,23 @@ class EntryFactory extends Factory
     }
 
     /**
-     * Indicate that the entry is a blog post.
+     * Indicate that the entry is a blog, which lists its posts.
      */
-    public function post(): static
+    public function blog(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => EntryType::Blog,
+        ]);
+    }
+
+    /**
+     * Indicate that the entry is a post in the given blog, or in a new one.
+     */
+    public function post(?Entry $blog = null): static
     {
         return $this->state(fn (array $attributes) => [
             'type' => EntryType::Post,
+            'blog_id' => $blog ?? Entry::factory()->blog(),
         ]);
     }
 

@@ -13,7 +13,8 @@ class EditEntry extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->failureNotificationTitle('This blog still has posts. Move or delete them first.'),
         ];
     }
 }

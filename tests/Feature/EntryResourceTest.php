@@ -63,21 +63,150 @@ class EntryResourceTest extends TestCase
             ->assertSchemaStateSet(['slug' => 'why-flat-file-cms-is-the-future']);
     }
 
-    public function test_a_slug_can_contain_slashes(): void
+    public function test_a_page_slug_can_contain_slashes(): void
     {
         $this->actingAs(User::factory()->create());
 
         Livewire::test(CreateEntry::class)
             ->fillForm([
-                'title' => 'Post',
-                'slug' => 'articles/flat-file-future',
-                'type' => EntryType::Post->value,
+                'title' => 'Design',
+                'slug' => 'services/design',
+                'type' => EntryType::Page->value,
                 'status' => EntryStatus::Draft->value,
             ])
             ->call('create')
             ->assertHasNoFormErrors();
 
-        $this->assertDatabaseHas('entries', ['slug' => 'articles/flat-file-future']);
+        $this->assertDatabaseHas('entries', ['path' => 'services/design']);
+    }
+
+    public function test_a_post_is_created_in_its_blog(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $blog = Entry::factory()->blog()->create(['slug' => 'news']);
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Version 1.0 Released',
+                'slug' => 'v1-released',
+                'type' => EntryType::Post->value,
+                'blog_id' => $blog->id,
+                'status' => EntryStatus::Published->value,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $post = Entry::query()->where('type', EntryType::Post)->sole();
+        $this->assertTrue($post->blog->is($blog));
+        $this->assertSame('news/v1-released', $post->path);
+    }
+
+    public function test_a_post_must_have_a_blog(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Orphan',
+                'slug' => 'orphan',
+                'type' => EntryType::Post->value,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['blog_id' => 'required']);
+    }
+
+    public function test_a_post_slug_cannot_contain_slashes(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $blog = Entry::factory()->blog()->create();
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Post',
+                'slug' => 'nested/post',
+                'type' => EntryType::Post->value,
+                'blog_id' => $blog->id,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['slug' => 'regex']);
+    }
+
+    public function test_only_blogs_can_be_chosen_as_a_posts_blog(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $page = Entry::factory()->create();
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Post',
+                'slug' => 'post',
+                'type' => EntryType::Post->value,
+                'blog_id' => $page->id,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['blog_id']);
+    }
+
+    public function test_the_same_post_slug_can_be_used_in_two_blogs(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $news = Entry::factory()->blog()->create(['slug' => 'news']);
+        Entry::factory()->post(Entry::factory()->blog()->create(['slug' => 'articles']))->create(['slug' => 'welcome']);
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Welcome',
+                'slug' => 'welcome',
+                'type' => EntryType::Post->value,
+                'blog_id' => $news->id,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('entries', ['path' => 'news/welcome']);
+    }
+
+    public function test_a_page_cannot_take_the_address_of_an_existing_post(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Entry::factory()->post(Entry::factory()->blog()->create(['slug' => 'news']))->create(['slug' => 'welcome']);
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Welcome',
+                'slug' => 'news/welcome',
+                'type' => EntryType::Page->value,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['slug']);
+    }
+
+    public function test_a_blog_with_posts_cannot_be_deleted(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $blog = Entry::factory()->blog()->create();
+        Entry::factory()->post($blog)->create();
+
+        Livewire::test(EditEntry::class, ['record' => $blog->getRouteKey()])
+            ->callAction('delete');
+
+        $this->assertModelExists($blog);
+    }
+
+    public function test_an_empty_blog_can_be_deleted(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $blog = Entry::factory()->blog()->create();
+
+        Livewire::test(EditEntry::class, ['record' => $blog->getRouteKey()])
+            ->callAction('delete');
+
+        $this->assertModelMissing($blog);
     }
 
     /**
@@ -125,7 +254,7 @@ class EntryResourceTest extends TestCase
                 'status' => EntryStatus::Draft->value,
             ])
             ->call('create')
-            ->assertHasFormErrors(['slug' => 'unique']);
+            ->assertHasFormErrors(['slug']);
     }
 
     public function test_an_entry_can_be_saved_without_changing_its_own_slug(): void

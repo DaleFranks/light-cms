@@ -14,12 +14,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A page or blog post, written in Markdown.
+ * A page, blog or blog post, written in Markdown.
+ *
+ * A blog is a page that lists its posts. Each post belongs to one blog, and its
+ * path is the blog's path followed by the post's own slug, e.g. "news/v1-released".
  */
 #[Fillable([
     'type',
     'title',
     'slug',
+    'blog_id',
     'body',
     'status',
     'published_at',
@@ -41,6 +45,27 @@ class Entry extends Model
         'status' => 'draft',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Entry $entry): void {
+            if ($entry->type !== EntryType::Post) {
+                $entry->blog_id = null;
+            }
+
+            $entry->path = $entry->buildPath();
+        });
+
+        static::saved(function (Entry $entry): void {
+            if ($entry->type === EntryType::Blog && $entry->wasChanged('path')) {
+                $entry->posts()->each(fn (Entry $post): bool => $post->save());
+            }
+        });
+
+        static::deleting(function (Entry $entry): bool {
+            return ! $entry->posts()->exists();
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -54,6 +79,42 @@ class Entry extends Model
             'published_at' => 'datetime',
             'nav_order' => 'integer',
         ];
+    }
+
+    /**
+     * Build the URL path for the given slug, as it would be for this entry.
+     */
+    public function buildPath(?string $slug = null): string
+    {
+        $slug ??= $this->slug;
+
+        if ($this->type !== EntryType::Post || $this->blog_id === null) {
+            return $slug;
+        }
+
+        $blogPath = Entry::query()->whereKey($this->blog_id)->value('path');
+
+        return $blogPath.'/'.$slug;
+    }
+
+    /**
+     * The blog a post belongs to.
+     *
+     * @return BelongsTo<Entry, $this>
+     */
+    public function blog(): BelongsTo
+    {
+        return $this->belongsTo(Entry::class, 'blog_id');
+    }
+
+    /**
+     * The posts in a blog.
+     *
+     * @return HasMany<Entry, $this>
+     */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Entry::class, 'blog_id');
     }
 
     /**

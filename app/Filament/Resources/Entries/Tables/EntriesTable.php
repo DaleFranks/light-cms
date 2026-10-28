@@ -18,19 +18,22 @@ class EntriesTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('author'))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['author', 'blog']))
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable()
-                    ->description(fn (Entry $record): string => '/'.$record->slug),
+                    ->description(fn (Entry $record): string => '/'.$record->path),
                 TextColumn::make('type')
                     ->badge()
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('blog.title')
+                    ->label('Blog')
+                    ->toggleable(),
                 TextColumn::make('author.name')
                     ->label('Author')
                     ->toggleable(),
@@ -47,6 +50,12 @@ class EntriesTable
             ->filters([
                 SelectFilter::make('type')
                     ->options(EntryType::class),
+                SelectFilter::make('blog')
+                    ->relationship(
+                        'blog',
+                        'title',
+                        fn (Builder $query): Builder => $query->where('type', EntryType::Blog),
+                    ),
                 SelectFilter::make('status')
                     ->options(EntryStatus::class),
             ])

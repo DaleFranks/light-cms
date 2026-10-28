@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\EntryStatus;
+use App\EntryType;
 use App\Models\Entry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -35,5 +36,29 @@ class EntryTest extends TestCase
         $parent->delete();
 
         $this->assertNull($child->refresh()->parent_id);
+    }
+
+    public function test_changing_a_blogs_slug_moves_its_posts(): void
+    {
+        $blog = Entry::factory()->blog()->create(['slug' => 'blog']);
+        $post = Entry::factory()->post($blog)->create(['slug' => 'hello']);
+        $otherPost = Entry::factory()->post()->create(['slug' => 'hello']);
+        $this->assertSame('blog/hello', $post->path);
+
+        $blog->update(['slug' => 'articles']);
+
+        $this->assertSame('articles/hello', $post->refresh()->path);
+        $this->assertSame($otherPost->blog->slug.'/hello', $otherPost->refresh()->path);
+    }
+
+    public function test_an_entry_that_is_not_a_post_has_no_blog(): void
+    {
+        $blog = Entry::factory()->blog()->create(['slug' => 'news']);
+        $post = Entry::factory()->post($blog)->create(['slug' => 'about']);
+
+        $post->update(['type' => EntryType::Page]);
+
+        $this->assertNull($post->blog_id);
+        $this->assertSame('about', $post->path);
     }
 }
