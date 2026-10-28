@@ -58,6 +58,12 @@ class EntryForm
                                     ->rule(fn (Get $get, ?Entry $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {
                                         $path = self::pathFor($get, (string) $value);
 
+                                        if (in_array(Str::before($path, '/'), Entry::RESERVED_PATHS, true)) {
+                                            $fail('Addresses starting with "'.Str::before($path, '/').'" are used by the system.');
+
+                                            return;
+                                        }
+
                                         if (self::isPathTaken($path, $record)) {
                                             $fail("The address /{$path} is already used by another entry.");
                                         }

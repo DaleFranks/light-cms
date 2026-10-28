@@ -327,6 +327,21 @@ class EntryResourceTest extends TestCase
             ->assertHasFormErrors(['slug']);
     }
 
+    public function test_an_address_used_by_the_system_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Admin',
+                'slug' => 'admin/tools',
+                'type' => EntryType::Page->value,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['slug']);
+    }
+
     public function test_an_entry_can_be_saved_without_changing_its_own_slug(): void
     {
         $this->actingAs(User::factory()->create());

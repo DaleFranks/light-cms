@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Entry;
+use App\Models\Theme;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\View\View as ViewInstance;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer('components.site.layout', function (ViewInstance $view): void {
+            $view->with([
+                'theme' => Theme::current(),
+                'menu' => Entry::menu(),
+            ]);
+        });
     }
 }

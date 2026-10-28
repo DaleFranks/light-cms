@@ -8,10 +8,12 @@ use Database\Factories\EntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * A page, blog or blog post, written in Markdown.
@@ -35,6 +37,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Entry extends Model
 {
+    /**
+     * The path of the entry shown at the site's root address.
+     */
+    public const HOME_PATH = 'home';
+
+    /**
+     * Paths used by the app itself, which no entry may take.
+     *
+     * @var list<string>
+     */
+    public const RESERVED_PATHS = ['admin', 'filament', 'livewire', 'storage', 'up'];
+
     /** @use HasFactory<EntryFactory> */
     use HasFactory;
 
@@ -95,6 +109,82 @@ class Entry extends Model
         $blogPath = Entry::query()->whereKey($this->blog_id)->value('path');
 
         return $blogPath.'/'.$slug;
+    }
+
+    /**
+     * The address of the entry on the public site.
+     */
+    public function url(): string
+    {
+        return $this->path === self::HOME_PATH ? url('/') : url($this->path);
+    }
+
+    /**
+     * The body as HTML. A leading "# Heading" is dropped, because the page title
+     * is already shown above the content.
+     */
+    public function bodyHtml(): string
+    {
+        $markdown = preg_replace('/^\s*#\s+.+?(\r?\n)+/', '', (string) $this->body, 1);
+
+        return Str::markdown($markdown, [
+            'html_input' => 'allow',
+            'allow_unsafe_links' => false,
+        ]);
+    }
+
+    /**
+     * The first three sentences of the body as plain text, for blog feeds.
+     */
+    public function excerpt(): string
+    {
+        $markdown = preg_replace([
+            '/!\[.*?\]\(.*?\)/',
+            '/^#+\s+.*$/m',
+            '/\[(module|card|cards|youtube|image|slider):[^\]]*\]/i',
+        ], '', (string) $this->body);
+
+        $text = trim(html_entity_decode(strip_tags(Str::markdown($markdown)), ENT_QUOTES, 'UTF-8'));
+        $sentences = preg_split('/(?<=[.?!])\s+/u', $text) ?: [];
+
+        return implode(' ', array_slice($sentences, 0, 3));
+    }
+
+    /**
+     * Published pages and blogs that are in the menu, with their children
+     * nested under them in menu order.
+     *
+     * @return Collection<int, Entry>
+     */
+    public static function menu(): Collection
+    {
+        $items = self::query()
+            ->published()
+            ->whereNot('type', EntryType::Post)
+            ->whereNotNull('nav_order')
+            ->orderBy('nav_order')
+            ->orderBy('title')
+            ->get(['id', 'type', 'title', 'path', 'parent_id', 'nav_order']);
+
+        $itemsById = $items->keyBy('id');
+        $childrenByParent = $items->groupBy('parent_id');
+
+        foreach ($items as $item) {
+            $item->setRelation('children', $childrenByParent->get($item->id, new Collection));
+        }
+
+        return $items
+            ->filter(fn (Entry $item): bool => $item->parent_id === null || ! $itemsById->has($item->parent_id))
+            ->values();
+    }
+
+    /**
+     * Whether this menu item, or anything under it, is the given path.
+     */
+    public function isActiveFor(string $path): bool
+    {
+        return $this->path === $path
+            || $this->children->contains(fn (Entry $child): bool => $child->isActiveFor($path));
     }
 
     /**

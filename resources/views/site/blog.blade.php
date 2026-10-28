@@ -1,0 +1,41 @@
+<x-site.layout
+    :title="$entry->title"
+    :description="$entry->meta_description"
+    :keywords="$entry->meta_keywords"
+    :current-path="$entry->path"
+>
+    <h1 class="page-title">{{ $entry->title }}</h1>
+
+    <article class="prose">
+        {!! $entry->bodyHtml() !!}
+    </article>
+
+    <div class="card-grid blog-feed">
+        @forelse ($posts as $post)
+            <article class="card feed-item">
+                <h2 class="feed-title">
+                    <a href="{{ $post->url() }}">{{ $post->title }}</a>
+                </h2>
+                @if ($post->published_at)
+                    <div class="feed-date">{{ $post->published_at->format('F j, Y') }}</div>
+                @endif
+                <p class="feed-excerpt">{{ $post->excerpt() }}</p>
+                <a href="{{ $post->url() }}" class="read-more">Read More &raquo;</a>
+            </article>
+        @empty
+            <p class="no-posts">No posts yet.</p>
+        @endforelse
+    </div>
+
+    @if ($posts->hasPages())
+        <nav class="pagination" aria-label="Pages of posts">
+            @if (! $posts->onFirstPage())
+                <a href="{{ $posts->previousPageUrl() }}" class="prev-page">&laquo; Newer Posts</a>
+            @endif
+            <span class="page-number">Page {{ $posts->currentPage() }} of {{ $posts->lastPage() }}</span>
+            @if ($posts->hasMorePages())
+                <a href="{{ $posts->nextPageUrl() }}" class="next-page">Older Posts &raquo;</a>
+            @endif
+        </nav>
+    @endif
+</x-site.layout>
