@@ -38,6 +38,11 @@ jobs:
           php artisan key:generate
           php artisan test
 
+      # Stops the release if any package the site ships with has a known security
+      # problem. Abandoned packages are only reported, so they don't block a release.
+      - name: Check packages for known security problems
+        run: composer audit --no-dev --abandoned=report
+
       - name: Build the site folder
         run: |
           mkdir build

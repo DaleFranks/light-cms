@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\RedirectToHttps;
 use App\Http\Middleware\RedirectToSetup;
 use Illuminate\Foundation\Application;
@@ -14,7 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend([RedirectToHttps::class, RedirectToSetup::class]);
+        // The headers come first so they're added to every response, redirects included
+        $middleware->prepend([AddSecurityHeaders::class, RedirectToHttps::class, RedirectToSetup::class]);
 
         // Hosts that handle HTTPS in front of the site say so in this header.
         // Only that header is trusted; visitors' addresses are never taken from headers.
