@@ -10,6 +10,10 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
     require $maintenance;
 }
 
+// On the very first visit, check the host and write the .env settings file...
+require __DIR__.'/../bootstrap/FirstRunSetup.php';
+FirstRunSetup::run(dirname(__DIR__), $_SERVER);
+
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 
