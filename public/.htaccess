@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Uploads are only ever images, so nothing in uploads/ may run as a script
+    RewriteRule ^uploads/.*\.(php\d?|phtml|phar|pl|py|cgi|sh)$ - [F,L,NC]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

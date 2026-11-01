@@ -1,0 +1,25 @@
+# Light CMS on shared hosting
+#
+# When the whole site is uploaded into the web root (such as public_html),
+# this sends every request into the public/ folder, which is the only part of
+# the site meant to be seen. Everything else, including the .env settings file
+# and the database, can't be reached from a browser.
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # /about is answered by public/index.php, /css/site.css by public/css/site.css
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Without URL rewriting, refuse everything rather than expose private files.
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
+
+# A second lock on the most sensitive files, in case the rules above are ignored.
+<FilesMatch "^(\.env.*|.*\.sqlite|composer\.(json|lock)|artisan)$">
+    Require all denied
+</FilesMatch>
