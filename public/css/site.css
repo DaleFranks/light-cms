@@ -1752,6 +1752,38 @@ select:focus {
     border: none;
 }
 
+/* [youtube:url|width|align]: a set width never exceeds the column; left and right let text wrap around the video */
+.video-container[style] {
+    max-width: 100%;
+}
+
+.video-container.video-left {
+    float: left;
+    clear: left;
+    margin: 0.5rem 1.5rem 1.5rem 0;
+}
+
+.video-container.video-right {
+    float: right;
+    clear: right;
+    margin: 0.5rem 0 1.5rem 1.5rem;
+}
+
+/* Same gap above a floated video as above the text beside it, so their tops line up */
+.prose > * + .video-left,
+.prose > * + .video-right {
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 576px) {
+    .video-container.video-left,
+    .video-container.video-right {
+        float: none;
+        width: 100% !important;
+        margin: 2.5rem auto;
+    }
+}
+
 /* ==========================================================================
    SLIDER COMPONENT
    ========================================================================== */
@@ -1956,6 +1988,15 @@ body.layout-landing .prose > .module {
     padding: 64px max(24px, (100% - var(--max-width-content)) / 2 + 24px);
     border-radius: 0;
     box-shadow: none;
+}
+
+/* Floated videos (and later images) sit at the edge of the content column, not the window. */
+body.layout-landing .prose > .video-left {
+    margin-left: max(24px, (100% - var(--max-width-content)) / 2 + 24px);
+}
+
+body.layout-landing .prose > .video-right {
+    margin-right: max(24px, (100% - var(--max-width-content)) / 2 + 24px);
 }
 
 /* Space between a band and the text around it; bands that follow each other touch. */

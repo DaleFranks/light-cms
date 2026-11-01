@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\BoxStyle;
+use App\Markdown;
 use Database\Factories\ModuleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 /**
  * A reusable block of Markdown, such as the site footer, placed in a page
@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
  * - [navigation:multi] for a column per top-level menu item, with its children listed under it
  * - [curr-year] for the current year
  * - [site-name] for the site name set on the Theme screen
+ * - [youtube:url|width|align] for a YouTube video
  */
 #[Fillable([
     'name',
@@ -112,10 +113,7 @@ class Module extends Model
 
         $markdown = preg_replace('/\[navigation:(flat|multi)\]/i', '<!--navigation:$1-->', $markdown);
 
-        $html = Str::markdown($markdown, [
-            'html_input' => 'allow',
-            'allow_unsafe_links' => false,
-        ]);
+        $html = Markdown::toHtml($markdown);
 
         return preg_replace_callback(
             '/<!--navigation:(flat|multi)-->/i',

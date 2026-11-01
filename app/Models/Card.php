@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\BoxStyle;
+use App\Markdown;
 use Database\Factories\CardFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 /**
  * A short block of Markdown shown as a card, placed in a page with
@@ -50,10 +50,7 @@ class Card extends Model
             $this->style ? 'theme-'.$this->style->value : null,
         ])->filter()->implode(' ');
 
-        $body = Str::markdown((string) $this->body, [
-            'html_input' => 'allow',
-            'allow_unsafe_links' => false,
-        ]);
+        $body = Markdown::toHtml((string) $this->body);
 
         return '<div class="'.e($classes).'">'."\n".$body."\n".'</div>';
     }
