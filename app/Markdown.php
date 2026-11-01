@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Models\Card;
+use App\Models\Form;
 use App\Models\Image;
 use App\Models\Module;
 use App\Models\Slider;
@@ -13,6 +14,7 @@ use Illuminate\Support\Str;
  * Turns Markdown into HTML, filling in shortcodes:
  * - [image:file|width|align|description] places an image from the library (or from a full URL)
  * - [youtube:url|width|align] embeds a YouTube video
+ * - [form:slug] places a form built on the Forms screen
  * - [module:slug], [card:slug] and [cards: slug-1, slug-2] place modules and cards (pages only)
  * - [slider:slug] places a slider (pages only)
  *
@@ -21,16 +23,16 @@ use Illuminate\Support\Str;
  *
  * Each shortcode is swapped for a placeholder before the Markdown is converted
  * and filled in afterwards, so its HTML is never converted twice. Videos,
- * modules, cards and sliders are blocks, so each gets a paragraph of its own:
- * text written on the same line carries on after the block instead of ending
- * up inside it.
- * Images stay in the line, so text written beside them wraps around them. A
+ * forms, modules, cards and sliders are blocks, so each gets a paragraph of its
+ * own: text written on the same line carries on after the block instead of
+ * ending up inside it. Images stay in the line, so text written beside them
+ * wraps around them. A
  * shortcode naming something that doesn't exist is left as written, so the
  * mistake shows.
  */
 class Markdown
 {
-    private const SHORTCODE_PATTERN = '/\[(image|youtube|module|card|cards|slider):([^\]]+)\]/i';
+    private const SHORTCODE_PATTERN = '/\[(image|youtube|form|module|card|cards|slider):([^\]]+)\]/i';
 
     private const MARKDOWN_IMAGE_PATTERN = '/!\[([^\]]*)\]\(\s*<?([^\s)>]+)>?(?:\s+(?:"([^"]*)"|\'([^\']*)\'))?\s*\)/';
 
@@ -69,7 +71,7 @@ class Markdown
         $markdown = preg_replace_callback(self::SHORTCODE_PATTERN, function (array $match) use (&$shortcodes, $withBlocks): string {
             $kind = strtolower($match[1]);
 
-            if (! $withBlocks && ! in_array($kind, ['image', 'youtube'], true)) {
+            if (! $withBlocks && ! in_array($kind, ['image', 'youtube', 'form'], true)) {
                 return $match[0];
             }
 
@@ -100,9 +102,10 @@ class Markdown
         $modules = self::load(Module::class, $shortcodes, ['module']);
         $cards = self::load(Card::class, $shortcodes, ['card', 'cards']);
         $sliders = self::load(Slider::class, $shortcodes, ['slider']);
+        $forms = self::load(Form::class, $shortcodes, ['form']);
         $images = self::loadImages($shortcodes);
 
-        return preg_replace_callback(self::PLACEHOLDER_PATTERN, function (array $match) use ($shortcodes, $modules, $cards, $sliders, $images): string {
+        return preg_replace_callback(self::PLACEHOLDER_PATTERN, function (array $match) use ($shortcodes, $modules, $cards, $sliders, $forms, $images): string {
             $shortcode = $shortcodes[(int) $match[1]] ?? null;
 
             if ($shortcode === null) {
@@ -116,6 +119,7 @@ class Markdown
                 'card' => $cards->get(self::slugs($shortcode['value'])[0] ?? '')?->html(),
                 'cards' => self::cardGrid(self::slugs($shortcode['value']), $cards),
                 'slider' => $sliders->get(self::slugs($shortcode['value'])[0] ?? '')?->html(),
+                'form' => $forms->get(self::slugs($shortcode['value'])[0] ?? '')?->html(),
             };
 
             if ($html !== null) {
@@ -148,7 +152,7 @@ class Markdown
     /**
      * Load, in one query, every module or card the shortcodes of the given kinds name.
      *
-     * @template TModel of Module|Card|Slider
+     * @template TModel of Module|Card|Slider|Form
      *
      * @param  class-string<TModel>  $model
      * @param  list<array{kind: string, value: string, original: string}>  $shortcodes

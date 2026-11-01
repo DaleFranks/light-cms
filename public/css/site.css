@@ -825,6 +825,7 @@ input[type="tel"],
 input[type="url"],
 input[type="number"],
 input[type="search"],
+input[type="date"],
 textarea,
 select {
     width: 100%;
@@ -844,6 +845,7 @@ input[type="tel"]:focus,
 input[type="url"]:focus,
 input[type="number"]:focus,
 input[type="search"]:focus,
+input[type="date"]:focus,
 textarea:focus,
 select:focus {
     outline: none;
@@ -869,6 +871,87 @@ select:focus {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+/* Forms built on the Forms screen ([form:slug]) */
+.site-form {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    padding: 32px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.site-form fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.site-form legend {
+    padding: 0;
+    margin-bottom: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+}
+
+.site-form .form-choice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--color-text-main);
+    cursor: pointer;
+}
+
+.site-form .form-choice input {
+    width: 1.1em;
+    height: 1.1em;
+    margin: 0;
+    accent-color: var(--color-primary);
+}
+
+.form-required {
+    color: #b91c1c;
+}
+
+.form-help,
+.form-error {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.form-help {
+    color: var(--color-text-muted);
+}
+
+.form-error {
+    color: #b91c1c;
+    font-weight: 500;
+}
+
+.form-group.has-error input,
+.form-group.has-error textarea,
+.form-group.has-error select {
+    border-color: #b91c1c;
+}
+
+/* Kept off screen rather than hidden, as some bots skip fields that are display: none */
+.form-honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 /* Alert notifications */
