@@ -80,6 +80,14 @@ class Entry extends Model
             }
         });
 
+        // A published page that moves leaves a redirect behind, so old links and
+        // search results still find it.
+        static::updated(function (Entry $entry): void {
+            if ($entry->wasChanged('path') && $entry->getRawOriginal('status') === EntryStatus::Published->value) {
+                Redirect::forMovedPage((string) $entry->getRawOriginal('path'), $entry->path);
+            }
+        });
+
         static::deleting(function (Entry $entry): bool {
             return ! $entry->posts()->exists();
         });

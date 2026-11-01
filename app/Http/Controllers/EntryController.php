@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\EntryType;
 use App\Models\Entry;
+use App\Models\Redirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,7 +16,7 @@ class EntryController extends Controller
      */
     public function home(): View
     {
-        return $this->render($this->findPublished(Entry::HOME_PATH));
+        return $this->render($this->findPublished(Entry::HOME_PATH) ?? abort(404));
     }
 
     /**
@@ -29,19 +30,32 @@ class EntryController extends Controller
             return redirect()->route('home', status: 301);
         }
 
-        return $this->render($this->findPublished($path));
+        $entry = $this->findPublished($path);
+
+        // An address with no page may have been redirected, such as an old page's address
+        if ($entry === null) {
+            $redirect = Redirect::findFor($path);
+            abort_if($redirect === null, 404);
+
+            return $redirect->follow($request);
+        }
+
+        return $this->render($entry);
     }
 
-    private function findPublished(string $path): Entry
+    /**
+     * The published entry at a path, or nothing (also for a post whose blog isn't published).
+     */
+    private function findPublished(string $path): ?Entry
     {
         $entry = Entry::query()
             ->published()
             ->where('path', $path)
             ->with('blog')
-            ->firstOrFail();
+            ->first();
 
-        if ($entry->type === EntryType::Post && ! Entry::query()->published()->whereKey($entry->blog_id)->exists()) {
-            abort(404);
+        if ($entry?->type === EntryType::Post && ! Entry::query()->published()->whereKey($entry->blog_id)->exists()) {
+            return null;
         }
 
         return $entry;
