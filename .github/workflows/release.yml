@@ -1,4 +1,5 @@
 # Builds the Light CMS download whenever a version tag (such as v1.0.0) is pushed.
+# Tags with a hyphen (such as v0.1.0-alpha) are published as pre-releases.
 #
 # The zip holds everything a site needs, including the vendor folder, so a site
 # owner only has to unzip it and upload it. Tests run first, so a release is
@@ -53,6 +54,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # A tag with a hyphen (v0.1.0-alpha, v1.0.0-rc1) is a test build, published
+          # as a pre-release; a plain version (v1.0.0) becomes the latest release.
+          prerelease=""
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            prerelease="--prerelease"
+          fi
+
           gh release create "$GITHUB_REF_NAME" "light-cms-$GITHUB_REF_NAME.zip" \
             --title "Light CMS $GITHUB_REF_NAME" \
-            --generate-notes
+            --generate-notes \
+            $prerelease
