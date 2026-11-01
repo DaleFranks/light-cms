@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DatabaseUpdate;
 use App\Installation;
 use App\Models\Theme;
 use App\Models\User;
@@ -70,5 +71,6 @@ class SetupController extends Controller
     private static function createTables(): void
     {
         Artisan::call('migrate', ['--force' => true]);
+        DatabaseUpdate::markApplied();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\DatabaseUpdate;
 use App\Installation;
 use App\Models\Entry;
 use App\Models\Form;
@@ -27,6 +28,9 @@ class SetupTest extends TestCase
         $this->storagePath = sys_get_temp_dir().'/light-cms-setup-'.bin2hex(random_bytes(4));
         File::ensureDirectoryExists($this->storagePath.'/app');
         $this->app->useStoragePath($this->storagePath);
+
+        // The database these tests use is already up to date
+        DatabaseUpdate::markApplied();
     }
 
     protected function tearDown(): void
