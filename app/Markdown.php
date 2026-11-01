@@ -273,7 +273,8 @@ class Markdown
     }
 
     /**
-     * The named cards side by side, skipping any that don't exist.
+     * The named cards side by side, skipping any that don't exist, in as many
+     * columns as fill the rows evenly.
      *
      * @param  list<string>  $slugs
      * @param  Collection<string, Card>  $cards
@@ -286,7 +287,14 @@ class Markdown
             return null;
         }
 
-        return '<div class="card-grid">'."\n".$gridCards->map->html()->implode("\n")."\n".'</div>';
+        // As many columns as fill each row evenly: 4 cards make 2 × 2, 5 or more go 3 across.
+        $columns = match ($gridCards->count()) {
+            1 => 1,
+            2, 4 => 2,
+            default => 3,
+        };
+
+        return '<div class="card-grid columns-'.$columns.'">'."\n".$gridCards->map->html()->implode("\n")."\n".'</div>';
     }
 
     /**

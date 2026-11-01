@@ -40,9 +40,22 @@ class CardShortcodeTest extends TestCase
 
         $html = $entry->bodyHtml();
 
-        $this->assertStringContainsString('<div class="card-grid">', $html);
+        $this->assertStringContainsString('<div class="card-grid columns-2">', $html);
         $this->assertSame(2, substr_count($html, '<div class="card">'));
         $this->assertLessThan(strpos($html, 'Design.'), strpos($html, 'Development.'));
+    }
+
+    public function test_the_number_of_cards_decides_the_columns_so_rows_are_even(): void
+    {
+        $slugs = collect(range(1, 7))->map(fn (int $number): string => Card::factory()->create(['slug' => "card-{$number}"])->slug);
+
+        $columnsFor = fn (int $count): string => preg_match(
+            '/card-grid columns-(\d)/',
+            Entry::factory()->make(['body' => '[cards: '.$slugs->take($count)->implode(', ').']'])->bodyHtml(),
+            $match,
+        ) ? $match[1] : 'none';
+
+        $this->assertSame(['1', '2', '3', '2', '3', '3', '3'], array_map($columnsFor, range(1, 7)));
     }
 
     public function test_shortcodes_naming_no_existing_card_are_left_as_written(): void
