@@ -39,6 +39,18 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Setup Screen
+    |--------------------------------------------------------------------------
+    |
+    | Until the site has been set up, every visit is sent to the setup screen.
+    | Tests switch this off, as they create their own data.
+    |
+    */
+
+    'installation_check' => (bool) env('INSTALLATION_CHECK', true),
+
     'debug' => (bool) env('APP_DEBUG', false),
 
     /*

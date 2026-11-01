@@ -50,7 +50,7 @@ class Entry extends Model
      *
      * @var list<string>
      */
-    public const RESERVED_PATHS = ['admin', 'filament', 'livewire', 'storage', 'up'];
+    public const RESERVED_PATHS = ['admin', 'filament', 'forms', 'livewire', 'setup', 'storage', 'up', 'uploads'];
 
     /** @use HasFactory<EntryFactory> */
     use HasFactory;
