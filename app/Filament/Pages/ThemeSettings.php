@@ -2,12 +2,14 @@
 
 namespace App\Filament\Pages;
 
+use App\BoxStyle;
 use App\Filament\Resources\Modules\ModuleResource;
 use App\FooterStyle;
 use App\LogoPosition;
 use App\Models\Module;
 use App\Models\Theme;
 use App\SiteNamePosition;
+use App\TextAlignment;
 use App\ThemeOptions;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -138,6 +140,32 @@ class ThemeSettings extends Page
                                     ->helperText('Without a logo, the site name always shows.'),
                                 ...self::optionFields('Header', 'Layout'),
                             ]),
+                            Section::make('Top bar')
+                                ->description('An optional line of text in a thin bar above the logo and menu, such as a phone number. It never takes room from the menu.')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('top_bar_text')
+                                        ->label('Text')
+                                        ->maxLength(255)
+                                        ->placeholder('Call us: (760) 555-0100')
+                                        ->helperText('Leave empty for no bar. For a number visitors can tap to call: [(760) 555-0100](tel:+17605550100). **Bold** works too.')
+                                        ->columnSpanFull(),
+                                    Select::make('top_bar_style')
+                                        ->label('Style')
+                                        ->options(BoxStyle::class)
+                                        ->selectablePlaceholder(false)
+                                        ->required(),
+                                    Select::make('top_bar_alignment')
+                                        ->label('Alignment')
+                                        ->options(TextAlignment::class)
+                                        ->selectablePlaceholder(false)
+                                        ->required(),
+                                    Toggle::make('top_bar_stays_visible')
+                                        ->label('Keep the top bar visible when scrolled')
+                                        ->helperText('When off, it folds away as the header shrinks, and comes back at the top of the page.')
+                                        ->inline(false),
+                                    ...self::optionFields('Header', 'Top bar'),
+                                ]),
                             Section::make('Header bar')->columns(3)->schema([
                                 self::colorPicker('color_header_background', 'Background'),
                                 ...self::optionFields('Header', 'Header bar'),

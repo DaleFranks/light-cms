@@ -48,6 +48,11 @@
 </head>
 <body class="{{ $theme->bodyClasses() }} layout-{{ $layout->value }}">
     <header class="site-header">
+        @if ($theme->hasTopBar())
+            <div class="top-bar theme-{{ $theme->top_bar_style->value }} align-{{ $theme->top_bar_alignment->value }}">
+                <div class="top-bar-container">{{ $theme->topBarHtml() }}</div>
+            </div>
+        @endif
         <div class="header-container">
             <div class="header-logo">
                 <a href="{{ route('home') }}">

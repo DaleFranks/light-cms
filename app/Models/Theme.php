@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\BoxStyle;
 use App\FooterStyle;
 use App\LogoPosition;
 use App\SiteNamePosition;
+use App\TextAlignment;
 use App\ThemeOptions;
 use Closure;
 use Database\Factories\ThemeFactory;
@@ -12,6 +14,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 /**
  * The site's look: branding, colors, fonts and layout options, edited on the
@@ -24,6 +28,10 @@ use Illuminate\Support\Facades\Storage;
     'favicon_path',
     'logo_position',
     'sticky_header',
+    'top_bar_text',
+    'top_bar_style',
+    'top_bar_alignment',
+    'top_bar_stays_visible',
     'color_primary',
     'color_secondary',
     'color_background',
@@ -54,6 +62,9 @@ class Theme extends Model
         'favicon_path' => null,
         'logo_position' => 'left',
         'sticky_header' => true,
+        'top_bar_style' => 'dark',
+        'top_bar_alignment' => 'center',
+        'top_bar_stays_visible' => true,
         'color_primary' => '#2563eb',
         'color_secondary' => '#0f172a',
         'color_background' => '#f8fafc',
@@ -109,6 +120,9 @@ class Theme extends Model
         return [
             'site_name_position' => SiteNamePosition::class,
             'sticky_header' => 'boolean',
+            'top_bar_style' => BoxStyle::class,
+            'top_bar_alignment' => TextAlignment::class,
+            'top_bar_stays_visible' => 'boolean',
             'logo_position' => LogoPosition::class,
             'footer_style' => FooterStyle::class,
             'options' => 'array',
@@ -220,7 +234,27 @@ class Theme extends Model
             'logo-'.$this->logo_position->value,
             $this->site_name_position === SiteNamePosition::Below ? 'site-name-below' : null,
             $this->sticky_header ? null : 'header-not-sticky',
+            $this->hasTopBar() ? 'has-top-bar' : null,
+            $this->hasTopBar() && ! $this->top_bar_stays_visible ? 'top-bar-scrolls-away' : null,
         ])->filter()->implode(' ');
+    }
+
+    /**
+     * Whether a line of text (such as a phone number) is shown in a bar above
+     * the logo and menu.
+     */
+    public function hasTopBar(): bool
+    {
+        return filled($this->top_bar_text);
+    }
+
+    /**
+     * The top bar's text as HTML. It may use Markdown for bold text and links,
+     * such as [(760) 555-0100](tel:+17605550100) to call from a phone.
+     */
+    public function topBarHtml(): HtmlString
+    {
+        return new HtmlString(Str::inlineMarkdown((string) $this->top_bar_text));
     }
 
     /**
@@ -237,6 +271,7 @@ class Theme extends Model
     public function googleFontsUrl(): string
     {
         $families = collect([$this->font_body, $this->font_headings, ...array_map($this->option(...), ['font_quotes', 'font_display', 'font_code'])])
+            ->when($this->hasTopBar(), fn ($fonts) => $fonts->push($this->option('top_bar_font')))
             ->unique()
             ->map(fn (string $font): string => 'family='.str_replace(' ', '+', $font).':wght@400;500;600;700')
             ->implode('&');

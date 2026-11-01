@@ -108,6 +108,12 @@ class ThemeOptions
                     '--logo-text-scrolled-shown' => $value ? '0' : '1',
                 ],
             ],
+            'top_bar_font' => [
+                'tab' => 'Header', 'section' => 'Top bar', 'label' => 'Font', 'type' => 'font',
+                'default' => fn (Theme $theme): string => $theme->font_body, 'var' => '--top-bar-font-family',
+            ],
+            'top_bar_text_size' => self::px('Header', 'Top bar', 'Text size', 14, '--top-bar-font-size', 10, 28,
+                'The bar grows to fit. A little smaller on phones.'),
             'header_background_scrolled' => self::color('Header', 'Header bar', 'Background, once scrolled',
                 fn (Theme $theme): string => $theme->color_header_background, '--header-bg-color-scrolled', alpha: 0.95),
             'header_link' => self::color('Header', 'Header bar', 'Menu links',
