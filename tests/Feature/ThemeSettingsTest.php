@@ -6,6 +6,8 @@ use App\Filament\Pages\ThemeSettings;
 use App\Models\Theme;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -57,6 +59,19 @@ class ThemeSettingsTest extends TestCase
             ->fillForm(['font_body' => 'Comic Sans MS'])
             ->call('save')
             ->assertHasFormErrors(['font_body']);
+    }
+
+    public function test_a_jpg_can_be_the_browser_tab_icon(): void
+    {
+        Storage::fake('uploads');
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['favicon_path' => UploadedFile::fake()->image('icon.jpg', 64, 64)])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertStringEndsWith('.jpg', Theme::current()->favicon_path);
     }
 
     public function test_reset_restores_the_default_look_but_keeps_the_site_name(): void

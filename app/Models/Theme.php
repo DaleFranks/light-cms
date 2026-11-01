@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\FooterStyle;
 use App\LogoPosition;
+use App\ThemeOptions;
+use Closure;
 use Database\Factories\ThemeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +35,7 @@ use Illuminate\Support\Facades\Storage;
     'content_width',
     'footer_style',
     'custom_css',
+    'options',
 ])]
 class Theme extends Model
 {
@@ -62,6 +65,7 @@ class Theme extends Model
         'content_width' => 840,
         'footer_style' => 'dark',
         'custom_css' => null,
+        'options' => null,
     ];
 
     /**
@@ -88,11 +92,11 @@ class Theme extends Model
     ];
 
     /**
-     * Fonts the stylesheet always uses, for quotes, display headings and code.
+     * Google Fonts offered for code, all monospaced.
      *
      * @var list<string>
      */
-    private const FIXED_FONTS = ['Roboto Slab', 'Outfit', 'Fira Code'];
+    public const CODE_FONTS = ['Fira Code', 'IBM Plex Mono', 'JetBrains Mono', 'Roboto Mono', 'Source Code Pro'];
 
     /**
      * Get the attributes that should be cast.
@@ -106,6 +110,7 @@ class Theme extends Model
             'sticky_header' => 'boolean',
             'logo_position' => LogoPosition::class,
             'footer_style' => FooterStyle::class,
+            'options' => 'array',
             'border_radius' => 'integer',
             'content_width' => 'integer',
         ];
@@ -133,41 +138,76 @@ class Theme extends Model
     }
 
     /**
-     * The CSS variables that override the stylesheet's defaults.
+     * The value of one of the detailed settings in ThemeOptions: the one chosen
+     * on the Theme screen, or the automatic one if it's empty.
+     */
+    public function option(string $key): mixed
+    {
+        $value = $this->options[$key] ?? null;
+
+        return filled($value) ? $value : $this->automaticOption($key);
+    }
+
+    /**
+     * What a detailed setting is when left empty, worked out from the main settings.
+     */
+    public function automaticOption(string $key): mixed
+    {
+        $default = ThemeOptions::all()[$key]['default'] ?? null;
+
+        return $default instanceof Closure ? $default($this) : $default;
+    }
+
+    /**
+     * The CSS variables that override the stylesheet's defaults: the main
+     * settings, then every detailed setting (chosen or automatic).
      *
      * @return array<string, string>
      */
     public function cssVariables(): array
     {
-        $primaryHover = self::darken($this->color_primary, 0.12);
-
-        return [
+        $variables = [
             '--color-primary' => $this->color_primary,
-            '--color-primary-hover' => $primaryHover,
             '--color-primary-rgb' => implode(', ', self::rgb($this->color_primary)),
             '--color-secondary' => $this->color_secondary,
-            '--color-secondary-hover' => self::lighten($this->color_secondary, 0.1),
             '--color-bg-body' => $this->color_background,
             '--color-text-main' => $this->color_text,
             '--color-bg-card' => $this->color_card_background,
             '--header-bg-color' => self::rgba($this->color_header_background, 0.85),
-            '--header-bg-color-scrolled' => self::rgba($this->color_header_background, 0.95),
-            '--header-nav-link-hover-bg' => self::rgba($this->color_primary, 0.06),
-            '--theme-dark-accent' => self::rgba($this->color_primary, 0.15),
-            '--theme-light-accent' => self::rgba($this->color_primary, 0.1),
-            '--footer-dark-bg' => $this->color_secondary,
-            '--footer-dark-header-hover' => $this->color_primary,
-            '--footer-light-header' => $this->color_secondary,
-            '--footer-light-link-hover' => $this->color_secondary,
-            '--footer-light-header-hover' => $this->color_primary,
-            '--footer-primary-bg' => $this->color_primary,
-            '--footer-primary-border' => $primaryHover,
             '--font-family-body' => self::fontStack($this->font_body),
             '--font-family-headers' => self::fontStack($this->font_headings),
             '--border-radius' => $this->border_radius.'px',
             '--border-radius-sm' => (int) round($this->border_radius / 2).'px',
             '--max-width-content' => $this->content_width.'px',
         ];
+
+        foreach (ThemeOptions::all() as $key => $option) {
+            $value = $this->option($key);
+
+            $variables = [...$variables, ...(isset($option['css'])
+                ? $option['css']($value, $this)
+                : [$option['var'] => $this->optionCss($option, $value)])];
+        }
+
+        return $variables;
+    }
+
+    /**
+     * A detailed setting's value as CSS.
+     *
+     * @param  array<string, mixed>  $option
+     */
+    private function optionCss(array $option, mixed $value): string
+    {
+        return match ($option['type']) {
+            'color' => isset($option['alpha']) ? self::rgba((string) $value, $option['alpha']) : (string) $value,
+            'px' => rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.').'px',
+            'font' => self::fontStack((string) $value),
+            'code_font' => "'{$value}', monospace",
+            'image' => filled($value) ? "url('".Storage::disk('uploads')->url((string) $value)."')" : 'none',
+            'toggle' => $value ? '1' : '0',
+            default => (string) $value,
+        };
     }
 
     /**
@@ -194,7 +234,7 @@ class Theme extends Model
      */
     public function googleFontsUrl(): string
     {
-        $families = collect([$this->font_body, $this->font_headings, ...self::FIXED_FONTS])
+        $families = collect([$this->font_body, $this->font_headings, ...array_map($this->option(...), ['font_quotes', 'font_display', 'font_code'])])
             ->unique()
             ->map(fn (string $font): string => 'family='.str_replace(' ', '+', $font).':wght@400;500;600;700')
             ->implode('&');
@@ -227,17 +267,17 @@ class Theme extends Model
         return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
     }
 
-    private static function rgba(string $hex, float $alpha): string
+    public static function rgba(string $hex, float $alpha): string
     {
         return 'rgba('.implode(', ', self::rgb($hex)).', '.$alpha.')';
     }
 
-    private static function darken(string $hex, float $amount): string
+    public static function darken(string $hex, float $amount): string
     {
         return self::mix($hex, 0, $amount);
     }
 
-    private static function lighten(string $hex, float $amount): string
+    public static function lighten(string $hex, float $amount): string
     {
         return self::mix($hex, 255, $amount);
     }

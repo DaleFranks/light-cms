@@ -636,17 +636,17 @@ body {
 }
 
 .prose a {
-    color: var(--color-primary);
+    color: var(--color-link, var(--color-primary));
     text-decoration: none;
     font-weight: 500;
-    border-bottom: 1px dashed rgba(37, 99, 235, 0.4);
+    border-bottom: 1px dashed color-mix(in srgb, var(--color-link, var(--color-primary)) 40%, transparent);
     transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .prose a:hover {
-    color: var(--color-primary-hover);
+    color: var(--color-link-hover, var(--color-primary-hover));
     border-bottom-style: solid;
-    border-bottom-color: var(--color-primary-hover);
+    border-bottom-color: var(--color-link-hover, var(--color-primary-hover));
 }
 
 .prose strong {
@@ -1687,9 +1687,10 @@ select:focus {
     background-color: var(--footer-bg, var(--footer-dark-bg));
     color: var(--footer-text, var(--footer-dark-text));
     border-top: 1px solid var(--footer-border, var(--footer-dark-border));
-    padding: 40px 0;
+    padding: var(--footer-padding, 40px) 0;
     margin-top: auto;
-    font-size: 0.875rem;
+    font-size: var(--footer-font-size, 0.85rem);
+    text-align: var(--footer-text-align, center);
 }
 
 /* Footer Themes */
@@ -1735,7 +1736,7 @@ select:focus {
 /* Flat Footer Navigation */
 .footer-nav-flat {
     display: flex;
-    justify-content: center;
+    justify-content: var(--footer-justify, center);
     flex-wrap: wrap;
     gap: 28px;
 }
@@ -1800,9 +1801,9 @@ select:focus {
 /* Footer Copyright & Markdown Output */
 .site-footer p {
     margin: 0;
-    text-align: center;
+    text-align: var(--footer-text-align, center);
     color: var(--footer-text, var(--footer-dark-text));
-    font-size: 0.85rem;
+    font-size: var(--footer-font-size, 0.85rem);
 }
 
 /* If copyright sits inside footer p block, add a border/top gap */
@@ -1914,7 +1915,7 @@ select:focus {
     grid-area: 1 / 1;
     opacity: 0;
     visibility: hidden;
-    transition: var(--slider-fade-transition), visibility 0s linear 2s;
+    transition: var(--slider-fade-transition), visibility 0s linear var(--slider-fade-duration, 2s);
 }
 
 .slider.animation-fade .slide.is-active {
