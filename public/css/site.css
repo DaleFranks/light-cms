@@ -945,6 +945,12 @@ select:focus {
     border-color: #b91c1c;
 }
 
+.site-form.form-sent p {
+    margin: 0;
+    font-size: 1.0625rem;
+    color: var(--color-text-main);
+}
+
 /* Kept off screen rather than hidden, as some bots skip fields that are display: none */
 .form-honeypot {
     position: absolute;

@@ -9,7 +9,12 @@
     $oldValue = fn (string $key, mixed $default = null): mixed => $isOldInputForThisForm ? old($key, $default) : $default;
 @endphp
 
-<form class="site-form form-vertical" method="POST" action="{{ url('forms/'.$form->slug) }}" id="form-{{ $form->slug }}">
+@if (session('form_sent') === $form->slug)
+    <div class="site-form form-sent" id="form-{{ $form->slug }}" role="status">
+        <p>{!! nl2br(e($form->success_message)) !!}</p>
+    </div>
+@else
+<form class="site-form form-vertical" method="POST" action="{{ route('forms.submit', $form) }}" id="form-{{ $form->slug }}">
     @csrf
     <input type="hidden" name="_form" value="{{ $form->slug }}">
 
@@ -84,7 +89,12 @@
         </div>
     @endforeach
 
+    @if ($errorBag->has('form'))
+        <p class="form-error" role="alert">{{ $errorBag->first('form') }}</p>
+    @endif
+
     <div>
         <button type="submit" class="btn btn-primary">{{ $form->submit_label }}</button>
     </div>
 </form>
+@endif

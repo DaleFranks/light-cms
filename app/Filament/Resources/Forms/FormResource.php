@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Forms;
 use App\Filament\Resources\Forms\Pages\CreateForm;
 use App\Filament\Resources\Forms\Pages\EditForm;
 use App\Filament\Resources\Forms\Pages\ListForms;
+use App\Filament\Resources\Forms\RelationManagers\SubmissionsRelationManager;
 use App\Filament\Resources\Forms\Schemas\FormForm;
 use App\Filament\Resources\Forms\Tables\FormsTable;
 use App\Models\Form;
@@ -35,7 +36,7 @@ class FormResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            SubmissionsRelationManager::class,
         ];
     }
 

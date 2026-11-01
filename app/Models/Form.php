@@ -7,8 +7,11 @@ use Database\Factories\FormFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * A form built on the Forms screen and placed in a page with [form:slug].
@@ -111,6 +114,116 @@ class Form extends Model
             ])
             ->filter(fn (array $field): bool => $field['key'] !== '')
             ->values();
+    }
+
+    /**
+     * What visitors have sent with the form, newest first.
+     *
+     * @return HasMany<FormSubmission, $this>
+     */
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class)->latest();
+    }
+
+    /**
+     * The validation rules for a submission, built from the fields' settings.
+     *
+     * @return array<string, list<mixed>>
+     */
+    public function validationRules(): array
+    {
+        $rules = [];
+
+        foreach ($this->formFields() as $field) {
+            $presence = $field['required'] ? 'required' : 'nullable';
+
+            $rules[$field['key']] = match ($field['type']) {
+                FormFieldType::Text, FormFieldType::Phone => [$presence, 'string', 'max:255'],
+                FormFieldType::Email => [$presence, 'string', 'email', 'max:255'],
+                FormFieldType::Textarea => [$presence, 'string', 'max:10000'],
+                FormFieldType::Number => [$presence, 'numeric'],
+                FormFieldType::Date => [$presence, 'date'],
+                FormFieldType::Dropdown, FormFieldType::Radio => [$presence, 'string', Rule::in($field['choices'])],
+                FormFieldType::Checkboxes => [$presence, 'array'],
+            };
+
+            if ($field['type'] === FormFieldType::Checkboxes) {
+                $rules[$field['key'].'.*'] = ['string', Rule::in($field['choices'])];
+            }
+        }
+
+        return $rules;
+    }
+
+    /**
+     * The fields' labels, so error messages name fields the way the visitor sees them.
+     *
+     * @return array<string, string>
+     */
+    public function validationAttributes(): array
+    {
+        return $this->formFields()
+            ->flatMap(fn (array $field): array => [
+                $field['key'] => $field['label'],
+                $field['key'].'.*' => $field['label'],
+            ])
+            ->all();
+    }
+
+    /**
+     * Save a visitor's validated answers, each with its field's current label.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    public function recordSubmission(array $values): FormSubmission
+    {
+        $answers = $this->formFields()
+            ->mapWithKeys(fn (array $field): array => [
+                $field['key'] => ['label' => $field['label'], 'value' => $values[$field['key']] ?? null],
+            ])
+            ->all();
+
+        return $this->submissions()->create(['answers' => $answers]);
+    }
+
+    /**
+     * Every submission as a CSV file, oldest first: a column for the date, one
+     * for each current field, and one for any field since removed from the form.
+     */
+    public function downloadSubmissionsCsv(): StreamedResponse
+    {
+        $submissions = $this->submissions()->reorder()->oldest()->get();
+        $columns = $this->formFields()->pluck('label', 'key');
+
+        foreach ($submissions as $submission) {
+            foreach ($submission->answers as $key => $answer) {
+                $columns->put($key, $columns->get($key, $answer['label'] ?? $key));
+            }
+        }
+
+        return response()->streamDownload(function () use ($columns, $submissions): void {
+            $output = fopen('php://output', 'w');
+
+            fputcsv($output, ['Sent', ...$columns->values()->all()], escape: '');
+
+            foreach ($submissions as $submission) {
+                fputcsv($output, [
+                    $submission->created_at->toDateTimeString(),
+                    ...$columns->keys()->map(fn (string $key): string => self::safeForSpreadsheets($submission->answerText($key)))->all(),
+                ], escape: '');
+            }
+
+            fclose($output);
+        }, Str::slug($this->name).'-submissions-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Stop a visitor's answer being run as a formula when the file is opened in a spreadsheet.
+     */
+    private static function safeForSpreadsheets(string $value): string
+    {
+        return preg_match('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
     }
 
     public function shortcode(): string

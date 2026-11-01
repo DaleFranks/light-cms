@@ -53,7 +53,7 @@ class FormTest extends TestCase
 
         $html = $form->html();
 
-        $this->assertStringContainsString('<form class="site-form form-vertical" method="POST" action="'.url('forms/everything').'"', $html);
+        $this->assertStringContainsString('<form class="site-form form-vertical" method="POST" action="'.route('forms.submit', 'everything').'"', $html);
         $this->assertStringContainsString('name="_token"', $html);
         $this->assertStringContainsString('name="'.Form::HONEYPOT_FIELD.'"', $html);
         $this->assertMatchesRegularExpression('#<input\s+type="text"\s+id="form-everything-name"\s+name="name"[^>]*required[^>]*aria-describedby="form-everything-name-help"#', $html);
