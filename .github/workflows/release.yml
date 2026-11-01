@@ -61,7 +61,10 @@ jobs:
             prerelease="--prerelease"
           fi
 
+          # GitHub also lists "Source code" downloads on every release, which lack the
+          # vendor folder and can't run without Composer, so the notes say which to use.
           gh release create "$GITHUB_REF_NAME" "light-cms-$GITHUB_REF_NAME.zip" \
             --title "Light CMS $GITHUB_REF_NAME" \
+            --notes "**Download light-cms-$GITHUB_REF_NAME.zip below, not the Source code files.** It includes everything the site needs; the Source code files don't and won't run on their own." \
             --generate-notes \
             $prerelease
