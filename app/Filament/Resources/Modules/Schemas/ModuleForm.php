@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\Modules\Schemas;
 
 use App\Models\Module;
+use App\ModuleStyle;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -44,9 +46,14 @@ class ModuleForm
                             ])
                             ->unique(ignoreRecord: true)
                             ->disabled(fn (?Module $record): bool => $record?->isFooter() ?? false)
-                            ->helperText(fn (?Module $record): string => $record?->isFooter()
+                            ->helperText(fn (Get $get, ?Module $record): string => $record?->isFooter()
                                 ? 'This module is the site footer, shown at the bottom of every page.'
-                                : 'The name used to place the module in a page.'),
+                                : 'Place the module in a page by writing [module:'.($get('slug') ?: 'slug').'] in its content.'),
+                        Select::make('style')
+                            ->options(ModuleStyle::class)
+                            ->placeholder('None')
+                            ->helperText('Dark and Light show the module as a colored panel.')
+                            ->hidden(fn (?Module $record): bool => $record?->isFooter() ?? false),
                         MarkdownEditor::make('body')
                             ->label('Content')
                             ->helperText('Shortcodes: [navigation:flat] shows a row of menu links, [navigation:multi] shows a column per menu item with its sub-pages, [curr-year] shows the current year and [site-name] shows the site name.'),

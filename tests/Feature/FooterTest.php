@@ -45,7 +45,7 @@ class FooterTest extends TestCase
         Entry::factory()->published()->create(['slug' => 'hidden', 'title' => 'Hidden']);
         $footer = Module::factory()->footer()->create(['body' => '[navigation:flat]']);
 
-        $html = $footer->bodyHtml(Entry::menu(), 'Acme');
+        $html = $footer->bodyHtml();
 
         $this->assertStringContainsString('<a href="'.url('about').'">About</a>', $html);
         $this->assertStringContainsString('<a href="'.url('services').'">Services</a>', $html);
@@ -61,7 +61,7 @@ class FooterTest extends TestCase
         Entry::factory()->published()->create(['slug' => 'services/design', 'title' => 'Design', 'nav_order' => 1, 'parent_id' => $services->id]);
         $footer = Module::factory()->footer()->create(['body' => '[Navigation:Multi]']);
 
-        $html = $footer->bodyHtml(Entry::menu(), 'Acme');
+        $html = $footer->bodyHtml();
 
         $this->assertStringContainsString('<nav class="footer-nav-multi" aria-label="Footer menu">', $html);
         $this->assertStringContainsString('<h4><a href="'.url('services').'">Services</a></h4>', $html);
@@ -70,9 +70,10 @@ class FooterTest extends TestCase
 
     public function test_the_site_name_is_escaped(): void
     {
+        Theme::factory()->create(['site_name' => '<script>Acme</script>']);
         $footer = Module::factory()->footer()->create(['body' => '[site-name]']);
 
-        $html = $footer->bodyHtml(Entry::menu(), '<script>Acme</script>');
+        $html = $footer->bodyHtml();
 
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('&lt;script&gt;Acme', $html);

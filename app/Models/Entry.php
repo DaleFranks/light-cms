@@ -122,15 +122,35 @@ class Entry extends Model
     /**
      * The body as HTML. A leading "# Heading" is dropped, because the page title
      * is already shown above the content.
+     *
+     * Each [module:slug] is swapped for the module after the Markdown is
+     * converted, so the module's own HTML is never converted twice. A
+     * shortcode naming a module that doesn't exist is left as it was.
      */
     public function bodyHtml(): string
     {
         $markdown = preg_replace('/^\s*#\s+.+?(\r?\n)+/', '', (string) $this->body, 1);
+        $markdown = preg_replace('/\[module:\s*([a-z0-9-]+)(?:\.md)?\s*\]/i', '<!--module:$1-->', $markdown);
 
-        return Str::markdown($markdown, [
+        $html = Str::markdown($markdown, [
             'html_input' => 'allow',
             'allow_unsafe_links' => false,
         ]);
+
+        if (! preg_match_all('/<!--module:([a-z0-9-]+)-->/i', $html, $matches)) {
+            return $html;
+        }
+
+        $modules = Module::query()
+            ->whereIn('slug', array_map(strtolower(...), $matches[1]))
+            ->get()
+            ->keyBy('slug');
+
+        return preg_replace_callback(
+            '/<!--module:([a-z0-9-]+)-->/i',
+            fn (array $match): string => $modules->get(strtolower($match[1]))?->html() ?? e("[module:{$match[1]}]"),
+            $html,
+        );
     }
 
     /**

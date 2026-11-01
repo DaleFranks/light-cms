@@ -77,9 +77,7 @@
 
     <footer class="site-footer theme-{{ $theme->footer_style->value }}">
         <div class="footer-container">
-            <div class="module footer-module">
-                {!! $footer->bodyHtml($menu, $theme->site_name) !!}
-            </div>
+            {!! $footer->html($menu) !!}
         </div>
     </footer>
 

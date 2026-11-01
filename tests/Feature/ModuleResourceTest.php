@@ -7,6 +7,7 @@ use App\Filament\Resources\Modules\Pages\EditModule;
 use App\Filament\Resources\Modules\Pages\ListModules;
 use App\Models\Module;
 use App\Models\User;
+use App\ModuleStyle;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -34,12 +35,12 @@ class ModuleResourceTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         Livewire::test(CreateModule::class)
-            ->fillForm(['name' => 'Call to Action', 'body' => 'Get in touch.'])
+            ->fillForm(['name' => 'Call to Action', 'body' => 'Get in touch.', 'style' => ModuleStyle::Dark])
             ->assertSchemaStateSet(['slug' => 'call-to-action'])
             ->call('create')
             ->assertHasNoFormErrors();
 
-        $this->assertDatabaseHas('modules', ['slug' => 'call-to-action', 'body' => 'Get in touch.']);
+        $this->assertDatabaseHas('modules', ['slug' => 'call-to-action', 'body' => 'Get in touch.', 'style' => 'dark']);
     }
 
     public function test_slugs_must_be_unique(): void
@@ -60,6 +61,7 @@ class ModuleResourceTest extends TestCase
 
         Livewire::test(EditModule::class, ['record' => $footer->getRouteKey()])
             ->assertFormFieldDisabled('slug')
+            ->assertFormFieldHidden('style')
             ->assertActionHidden(DeleteAction::class)
             ->fillForm(['body' => '[navigation:multi]'])
             ->call('save')

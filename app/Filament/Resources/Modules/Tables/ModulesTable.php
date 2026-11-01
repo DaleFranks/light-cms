@@ -19,7 +19,10 @@ class ModulesTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->description(fn (Module $record): string => $record->slug),
+                    ->description(fn (Module $record): string => $record->isFooter() ? 'Shown at the bottom of every page' : '[module:'.$record->slug.']'),
+                TextColumn::make('style')
+                    ->badge()
+                    ->placeholder('None'),
                 TextColumn::make('updated_at')
                     ->label('Last edited')
                     ->since()
