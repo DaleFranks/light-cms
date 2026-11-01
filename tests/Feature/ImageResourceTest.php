@@ -23,7 +23,7 @@ class ImageResourceTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake(Image::DISK);
+        Storage::fake(Image::DISK, ['url' => '/uploads']);
         $this->actingAs(User::factory()->create());
     }
 

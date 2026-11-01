@@ -12,6 +12,7 @@ use Filament\Forms\Components\MarkdownEditor;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\View as ViewInstance;
@@ -40,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
                 ->fileAttachmentsDirectory(Image::DIRECTORY)
                 ->fileAttachmentsAcceptedFileTypes(array_keys(Image::TYPES))
                 ->saveUploadedFileAttachmentUsing(fn (TemporaryUploadedFile $file): Image => Image::storeUpload($file))
-                ->getFileAttachmentUrlUsing(fn (Image|string $file): string => $file instanceof Image ? $file->url() : '/storage/'.$file);
+                ->getFileAttachmentUrlUsing(fn (Image|string $file): string => $file instanceof Image ? $file->url() : Storage::disk(Image::DISK)->url($file));
         });
 
         // A visitor may send any one form five times a minute. Past that, the

@@ -47,6 +47,18 @@ return [
             'report' => false,
         ],
 
+        // Uploaded images and Theme files, saved straight into the public folder
+        // (created when first needed) so the web server serves them without
+        // the storage:link shortcut, which some shared hosts don't allow.
+        'uploads' => [
+            'driver' => 'local',
+            'root' => public_path('uploads'),
+            'url' => '/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

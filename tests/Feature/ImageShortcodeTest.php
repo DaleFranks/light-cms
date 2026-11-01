@@ -24,7 +24,7 @@ class ImageShortcodeTest extends TestCase
     public function test_the_shortcode_places_a_library_image_with_its_saved_description_and_size(): void
     {
         $this->assertSame(
-            '<p><img src="/storage/images/team.jpg" alt="The whole team" width="1200" height="800" loading="lazy"></p>',
+            '<p><img src="/uploads/images/team.jpg" alt="The whole team" width="1200" height="800" loading="lazy"></p>',
             trim(Markdown::toHtml('[image:team.jpg]')),
         );
     }
@@ -34,7 +34,7 @@ class ImageShortcodeTest extends TestCase
         $html = Markdown::toHtml('[image: team.jpg | Our team | right | 400 ]');
 
         $this->assertStringContainsString(
-            '<img src="/storage/images/team.jpg" alt="Our team" title="Our team" class="img-right" width="400" height="267" style="--img-width: 400px" loading="lazy">',
+            '<img src="/uploads/images/team.jpg" alt="Our team" title="Our team" class="img-right" width="400" height="267" style="--img-width: 400px" loading="lazy">',
             $html,
         );
     }
@@ -71,13 +71,18 @@ class ImageShortcodeTest extends TestCase
     public function test_ordinary_markdown_images_find_their_file_in_the_library(): void
     {
         $this->assertStringContainsString(
-            '<img src="/storage/images/team.jpg" alt="The whole team" width="1200" height="800" loading="lazy">',
+            '<img src="/uploads/images/team.jpg" alt="The whole team" width="1200" height="800" loading="lazy">',
             Markdown::toHtml('![](team.jpg)'),
         );
 
         $this->assertStringContainsString(
-            '<img src="/storage/images/team.jpg" alt="Us" title="Us" width="1200" height="800" loading="lazy">',
+            '<img src="/uploads/images/team.jpg" alt="Us" title="Us" width="1200" height="800" loading="lazy">',
             Markdown::toHtml('![Us](/storage/images/team.jpg)'),
+        );
+
+        $this->assertStringContainsString(
+            'src="/uploads/images/team.jpg"',
+            Markdown::toHtml('![](/uploads/images/team.jpg)'),
         );
     }
 
@@ -99,9 +104,9 @@ class ImageShortcodeTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('src="/storage/images/team.jpg"', false)
-            ->assertSee('src="/storage/images/in-module.png"', false)
-            ->assertSee('src="/storage/images/in-card.png"', false);
+            ->assertSee('src="/uploads/images/team.jpg"', false)
+            ->assertSee('src="/uploads/images/in-module.png"', false)
+            ->assertSee('src="/uploads/images/in-card.png"', false);
     }
 
     public function test_descriptions_are_escaped(): void

@@ -67,7 +67,7 @@ class ThemeSettings extends Page
                             ->image()
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
                             ->maxSize(2048)
-                            ->disk('public')
+                            ->disk('uploads')
                             ->directory('theme'),
                         FileUpload::make('favicon_path')
                             ->label('Browser tab icon')
@@ -75,7 +75,7 @@ class ThemeSettings extends Page
                             ->image()
                             ->acceptedFileTypes(['image/png', 'image/x-icon', 'image/vnd.microsoft.icon'])
                             ->maxSize(512)
-                            ->disk('public')
+                            ->disk('uploads')
                             ->directory('theme'),
                     ]),
                 Section::make('Colors')

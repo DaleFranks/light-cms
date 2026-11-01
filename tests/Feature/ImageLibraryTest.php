@@ -23,7 +23,7 @@ class ImageLibraryTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake(Image::DISK);
+        Storage::fake(Image::DISK, ['url' => '/uploads']);
     }
 
     public function test_an_upload_keeps_a_tidied_version_of_its_name(): void
@@ -33,8 +33,9 @@ class ImageLibraryTest extends TestCase
         $this->assertSame('team-photo.jpg', $image->filename);
         $this->assertSame([800, 600], [$image->width, $image->height]);
         $this->assertSame('image/jpeg', $image->mime_type);
-        $this->assertSame('/storage/images/team-photo.jpg', $image->url());
+        $this->assertSame('/uploads/images/team-photo.jpg', $image->url());
         Storage::disk(Image::DISK)->assertExists('images/team-photo.jpg');
+        $this->assertSame(public_path('uploads'), config('filesystems.disks.uploads.root'));
     }
 
     public function test_an_upload_never_replaces_an_image_with_the_same_name(): void
@@ -113,7 +114,7 @@ class ImageLibraryTest extends TestCase
 
         $this->assertInstanceOf(Image::class, $saved);
         $this->assertSame('editor-shot.png', $saved->filename);
-        $this->assertSame('/storage/images/editor-shot.png', $editor->getFileAttachmentUrl($saved));
+        $this->assertSame('/uploads/images/editor-shot.png', $editor->getFileAttachmentUrl($saved));
     }
 
     /**

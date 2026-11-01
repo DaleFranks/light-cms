@@ -204,12 +204,12 @@ class Theme extends Model
 
     public function logoUrl(): ?string
     {
-        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
+        return $this->logo_path ? Storage::disk('uploads')->url($this->logo_path) : null;
     }
 
     public function faviconUrl(): ?string
     {
-        return $this->favicon_path ? Storage::disk('public')->url($this->favicon_path) : null;
+        return $this->favicon_path ? Storage::disk('uploads')->url($this->favicon_path) : null;
     }
 
     private static function fontStack(string $font): string

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * An image in the library, stored in the "images" folder of the public disk.
+ * An image in the library, stored in public/uploads/images, where the web server serves it directly.
  *
  * Uploads keep a tidied version of their own name ("Team Photo.JPG" becomes
  * "team-photo.jpg"). A name that's taken is numbered ("team-photo-2.jpg"), so an
@@ -31,7 +31,7 @@ class Image extends Model
     /** @use HasFactory<ImageFactory> */
     use HasFactory;
 
-    public const DISK = 'public';
+    public const DISK = 'uploads';
 
     public const DIRECTORY = 'images';
 
@@ -129,7 +129,7 @@ class Image extends Model
      */
     public function url(): string
     {
-        return '/storage/'.$this->path();
+        return Storage::disk(self::DISK)->url($this->path());
     }
 
     /**
@@ -166,12 +166,14 @@ class Image extends Model
 
     /**
      * The library file name that a reference in content points to: "team.jpg",
-     * "images/team.jpg" or "/storage/images/team.jpg" all mean "team.jpg".
+     * "images/team.jpg", "/uploads/images/team.jpg" and the older
+     * "/storage/images/team.jpg" all mean "team.jpg".
      */
     public static function nameFromReference(string $reference): ?string
     {
         $name = strtolower(urldecode(ltrim(parse_url($reference, PHP_URL_PATH) ?: $reference, '/')));
-        $name = Str::after(Str::after($name, 'storage/'), self::DIRECTORY.'/');
+        $name = preg_replace('#^(storage|uploads)/#', '', $name);
+        $name = Str::after($name, self::DIRECTORY.'/');
 
         return preg_match('/^[a-z0-9][a-z0-9._-]*\.[a-z0-9]+$/', $name) ? $name : null;
     }
