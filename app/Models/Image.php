@@ -141,8 +141,8 @@ class Image extends Model
     }
 
     /**
-     * The pages, posts, modules and cards whose content uses the image, by name,
-     * e.g. "Page: About us".
+     * Where the image is used, by name: the pages, posts, modules and cards whose
+     * content uses it and the sliders that show it, e.g. "Page: About us".
      *
      * @return Collection<int, string>
      */
@@ -159,6 +159,8 @@ class Image extends Model
                 ->map(fn (Module $module): string => 'Module: '.$module->name))
             ->merge($containing(Card::class)->get(['id', 'name', 'body'])->filter($uses)
                 ->map(fn (Card $card): string => 'Card: '.$card->name))
+            ->merge(Slider::query()->whereRelation('slides', 'image_id', $this->id)->pluck('name')
+                ->map(fn (string $name): string => 'Slider: '.$name))
             ->values();
     }
 
