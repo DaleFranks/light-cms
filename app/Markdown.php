@@ -3,44 +3,82 @@
 namespace App;
 
 use App\Models\Card;
+use App\Models\Image;
 use App\Models\Module;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
  * Turns Markdown into HTML, filling in shortcodes:
+ * - [image:file|width|align|description] places an image from the library (or from a full URL)
  * - [youtube:url|width|align] embeds a YouTube video
  * - [module:slug], [card:slug] and [cards: slug-1, slug-2] place modules and cards (pages only)
  *
+ * Ordinary Markdown images, ![description](team.jpg), also find their file in
+ * the library.
+ *
  * Each shortcode is swapped for a placeholder before the Markdown is converted
- * and filled in afterwards, so its HTML is never converted twice. These are all
- * blocks, so each placeholder gets a paragraph of its own: text written on the
- * same line carries on after the block instead of ending up inside it. A
+ * and filled in afterwards, so its HTML is never converted twice. Videos,
+ * modules and cards are blocks, so each gets a paragraph of its own: text written
+ * on the same line carries on after the block instead of ending up inside it.
+ * Images stay in the line, so text written beside them wraps around them. A
  * shortcode naming something that doesn't exist is left as written, so the
  * mistake shows.
  */
 class Markdown
 {
-    private const SHORTCODE_PATTERN = '/\[(youtube|module|card|cards):([^\]]+)\]/i';
+    private const SHORTCODE_PATTERN = '/\[(image|youtube|module|card|cards):([^\]]+)\]/i';
+
+    private const MARKDOWN_IMAGE_PATTERN = '/!\[([^\]]*)\]\(\s*<?([^\s)>]+)>?(?:\s+(?:"([^"]*)"|\'([^\']*)\'))?\s*\)/';
 
     private const PLACEHOLDER_PATTERN = '/<!--shortcode:(\d+)-->/';
+
+    /**
+     * Images are held in place by plain text (between two private-use characters)
+     * rather than an HTML comment, which Markdown would treat as a block of its
+     * own when it starts a line, pulling the image out of its paragraph.
+     */
+    private const INLINE_PLACEHOLDER_PATTERN = '/\x{E000}(\d+)\x{E001}/u';
 
     /**
      * @param  bool  $withBlocks  Whether modules and cards may be placed. They can't be placed inside each other.
      */
     public static function toHtml(string $markdown, bool $withBlocks = false): string
     {
-        /** @var list<array{kind: string, value: string, original: string}> $shortcodes */
+        /** @var list<array{kind: string, value: string, original: string, image?: array{file: string, size: ?string, align: ?string, description: ?string}}> $shortcodes */
         $shortcodes = [];
+
+        $markdown = preg_replace_callback(self::MARKDOWN_IMAGE_PATTERN, function (array $match) use (&$shortcodes): string {
+            if (preg_match('#^(https?:|data:|//)#i', $match[2]) || Image::nameFromReference($match[2]) === null) {
+                return $match[0];
+            }
+
+            $shortcodes[] = [
+                'kind' => 'image',
+                'value' => $match[2],
+                'original' => $match[0],
+                'image' => ['file' => $match[2], 'size' => null, 'align' => null, 'description' => trim($match[1]) ?: null],
+            ];
+
+            return self::inlinePlaceholder(array_key_last($shortcodes));
+        }, $markdown);
 
         $markdown = preg_replace_callback(self::SHORTCODE_PATTERN, function (array $match) use (&$shortcodes, $withBlocks): string {
             $kind = strtolower($match[1]);
 
-            if (! $withBlocks && $kind !== 'youtube') {
+            if (! $withBlocks && ! in_array($kind, ['image', 'youtube'], true)) {
                 return $match[0];
             }
 
-            $shortcodes[] = ['kind' => $kind, 'value' => trim($match[2]), 'original' => $match[0]];
+            $shortcode = ['kind' => $kind, 'value' => trim($match[2]), 'original' => $match[0]];
+
+            if ($kind === 'image') {
+                $shortcodes[] = [...$shortcode, 'image' => self::imageOptions($shortcode['value'])];
+
+                return self::inlinePlaceholder(array_key_last($shortcodes));
+            }
+
+            $shortcodes[] = $shortcode;
 
             return "\n\n<!--shortcode:".array_key_last($shortcodes)."-->\n\n";
         }, $markdown);
@@ -54,10 +92,13 @@ class Markdown
             return $html;
         }
 
+        $html = preg_replace(self::INLINE_PLACEHOLDER_PATTERN, '<!--shortcode:$1-->', $html);
+
         $modules = self::load(Module::class, $shortcodes, ['module']);
         $cards = self::load(Card::class, $shortcodes, ['card', 'cards']);
+        $images = self::loadImages($shortcodes);
 
-        return preg_replace_callback(self::PLACEHOLDER_PATTERN, function (array $match) use ($shortcodes, $modules, $cards): string {
+        return preg_replace_callback(self::PLACEHOLDER_PATTERN, function (array $match) use ($shortcodes, $modules, $cards, $images): string {
             $shortcode = $shortcodes[(int) $match[1]] ?? null;
 
             if ($shortcode === null) {
@@ -65,14 +106,24 @@ class Markdown
             }
 
             $html = match ($shortcode['kind']) {
+                'image' => self::image($shortcode['image'], $images),
                 'youtube' => self::youtube($shortcode['value']),
                 'module' => $modules->get(self::slugs($shortcode['value'])[0] ?? '')?->html(),
                 'card' => $cards->get(self::slugs($shortcode['value'])[0] ?? '')?->html(),
                 'cards' => self::cardGrid(self::slugs($shortcode['value']), $cards),
             };
 
-            return $html ?? '<p>'.e($shortcode['original']).'</p>';
+            if ($html !== null) {
+                return $html;
+            }
+
+            return $shortcode['kind'] === 'image' ? e($shortcode['original']) : '<p>'.e($shortcode['original']).'</p>';
         }, $html);
+    }
+
+    private static function inlinePlaceholder(int $index): string
+    {
+        return "\u{E000}{$index}\u{E001}";
     }
 
     /**
@@ -111,6 +162,105 @@ class Markdown
         }
 
         return $model::query()->whereIn('slug', $slugs)->get()->keyBy('slug')->toBase();
+    }
+
+    /**
+     * Load, in one query, every library image the shortcodes name.
+     *
+     * @param  list<array{kind: string, value: string, original: string, image?: array{file: string, size: ?string, align: ?string, description: ?string}}>  $shortcodes
+     * @return Collection<string, Image>
+     */
+    private static function loadImages(array $shortcodes): Collection
+    {
+        $filenames = collect($shortcodes)
+            ->filter(fn (array $shortcode): bool => isset($shortcode['image']))
+            ->map(fn (array $shortcode): ?string => Image::nameFromReference($shortcode['image']['file']))
+            ->filter()
+            ->unique();
+
+        if ($filenames->isEmpty()) {
+            return collect();
+        }
+
+        return Image::query()->whereIn('filename', $filenames)->get()->keyBy('filename')->toBase();
+    }
+
+    /**
+     * The parts of [image:file|width|align|description]. After the file, the parts
+     * may come in any order: a width ("400", "50%" or "400x300"), an alignment
+     * (left, center or right), and anything else is the description.
+     *
+     * @return array{file: string, size: ?string, align: ?string, description: ?string}
+     */
+    private static function imageOptions(string $value): array
+    {
+        $parts = array_map(trim(...), explode('|', $value));
+        $options = ['file' => array_shift($parts), 'size' => null, 'align' => null, 'description' => null];
+
+        foreach ($parts as $part) {
+            if ($part === '') {
+                continue;
+            }
+
+            if (preg_match('/^\d+(%|x\d+|px)?$/i', $part)) {
+                $options['size'] = strtolower($part);
+            } elseif (in_array(strtolower($part), ['left', 'center', 'right'], true)) {
+                $options['align'] = strtolower($part);
+            } else {
+                $options['description'] = $part;
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * An <img> for a library image, or for a full image URL.
+     *
+     * Without a description, a library image uses the description saved with it.
+     * The width and height are always given when known, so the page doesn't jump
+     * about as images load.
+     *
+     * @param  array{file: string, size: ?string, align: ?string, description: ?string}  $options
+     * @param  Collection<string, Image>  $images
+     */
+    private static function image(array $options, Collection $images): ?string
+    {
+        $isRemote = (bool) preg_match('#^https?://#i', $options['file']);
+        $image = $isRemote ? null : $images->get((string) Image::nameFromReference($options['file']));
+
+        if (! $isRemote && $image === null) {
+            return null;
+        }
+
+        $attributes = [
+            'src' => $image?->url() ?? $options['file'],
+            'alt' => $options['description'] ?? $image?->alt_text ?? '',
+            'title' => $options['description'],
+            'class' => $options['align'] ? 'img-'.$options['align'] : null,
+            'width' => $image?->width,
+            'height' => $image?->height,
+            'style' => null,
+            'loading' => 'lazy',
+        ];
+
+        $size = (string) $options['size'];
+
+        if (str_ends_with($size, '%')) {
+            $attributes['style'] = '--img-width: '.$size;
+        } elseif (preg_match('/^(\d+)(?:x(\d+)|px)?$/', $size, $dimensions)) {
+            $width = (int) $dimensions[1];
+            $attributes['style'] = '--img-width: '.$width.'px';
+            $attributes['height'] = isset($dimensions[2])
+                ? (int) $dimensions[2]
+                : ($image?->width ? (int) round($width * $image->height / $image->width) : null);
+            $attributes['width'] = $width;
+        }
+
+        return '<img '.collect($attributes)
+            ->reject(fn (mixed $value): bool => $value === null)
+            ->map(fn (mixed $value, string $name): string => $name.'="'.e((string) $value).'"')
+            ->implode(' ').'>';
     }
 
     /**
