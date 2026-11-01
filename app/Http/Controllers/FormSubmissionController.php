@@ -33,7 +33,7 @@ class FormSubmissionController extends Controller
             return $backToForm->withErrors($validator, 'form-'.$form->slug)->withInput();
         }
 
-        $form->recordSubmission($validator->validated());
+        $form->recordSubmission($validator->validated())->sendNotification();
 
         return $backToForm->with('form_sent', $form->slug);
     }

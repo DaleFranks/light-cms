@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
     'fields',
     'submit_label',
     'success_message',
+    'notify_emails',
 ])]
 class Form extends Model
 {
@@ -63,6 +64,7 @@ class Form extends Model
     {
         return [
             'fields' => 'array',
+            'notify_emails' => 'array',
         ];
     }
 
@@ -114,6 +116,21 @@ class Form extends Model
             ])
             ->filter(fn (array $field): bool => $field['key'] !== '')
             ->values();
+    }
+
+    /**
+     * The valid addresses that submissions are emailed to.
+     *
+     * @return list<string>
+     */
+    public function notifyAddresses(): array
+    {
+        return collect($this->notify_emails ?? [])
+            ->map(fn (mixed $address): string => trim((string) $address))
+            ->filter(fn (string $address): bool => (bool) filter_var($address, FILTER_VALIDATE_EMAIL))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

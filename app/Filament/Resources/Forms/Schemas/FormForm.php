@@ -60,6 +60,12 @@ class FormForm
                             ->helperText('Shown in place of the form once it has been sent.')
                             ->required()
                             ->rows(2),
+                        TagsInput::make('notify_emails')
+                            ->label('Email submissions to')
+                            ->placeholder('Type an address and press Enter')
+                            ->nestedRecursiveRules(['email'])
+                            ->helperText('Each submission is emailed to these addresses. Leave empty to only keep submissions here. How email is sent is set on the Email screen.')
+                            ->columnSpanFull(),
                     ]),
                 Section::make('Fields')
                     ->schema([

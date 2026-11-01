@@ -12,6 +12,7 @@ use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -47,6 +48,12 @@ class SubmissionsRelationManager extends RelationManager
                     ->limit(50)
                     ->placeholder('—'))
                     ->all(),
+                IconColumn::make('email_status')
+                    ->label('Emailed')
+                    ->icon(fn (?string $state): Heroicon => $state === 'failed' ? Heroicon::OutlinedExclamationTriangle : Heroicon::OutlinedCheckCircle)
+                    ->color(fn (?string $state): string => $state === 'failed' ? 'danger' : 'success')
+                    ->tooltip(fn (?string $state): ?string => $state === 'failed' ? 'The email about this submission couldn\'t be sent. Check the Email screen.' : 'Emailed')
+                    ->placeholder('—'),
             ])
             ->headerActions([
                 Action::make('download')
