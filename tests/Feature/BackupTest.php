@@ -8,6 +8,7 @@ use App\Filament\Pages\Backup as BackupPage;
 use App\Models\Entry;
 use App\Models\Image;
 use App\Models\User;
+use App\Version;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +47,7 @@ class BackupTest extends TestCase
         $this->assertSame('photo', $zip->getFromName('public/uploads/images/team.jpg'));
         $this->assertSame('logo', $zip->getFromName('public/uploads/theme/logo.png'));
         $this->assertStringContainsString('To restore the site', (string) $zip->getFromName('RESTORING.txt'));
+        $this->assertStringContainsString('Made with '.Version::label().'.', (string) $zip->getFromName('RESTORING.txt'));
         $this->assertSame(DatabaseUpdate::appliedVersion()."\n", $zip->getFromName('storage/app/database-version'));
         $this->assertSame(File::exists(base_path('.env')), $zip->locateName('.env') !== false);
 

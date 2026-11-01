@@ -13,7 +13,9 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -44,6 +46,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,
             ])
+            // Which version this is, at the bottom of the menu
+            ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn (): View => view('filament.version'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

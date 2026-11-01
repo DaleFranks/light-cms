@@ -48,6 +48,7 @@ jobs:
           mkdir build
           git archive --format=tar --prefix=light-cms/ "$GITHUB_REF_NAME" | tar -x -C build
           cd build/light-cms
+          echo "$GITHUB_REF_NAME" > VERSION
           composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
 
       - name: Zip it

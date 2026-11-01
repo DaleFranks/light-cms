@@ -29,3 +29,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /public/uploads
+
+# Written by the release build
+/VERSION

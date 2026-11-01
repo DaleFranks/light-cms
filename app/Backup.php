@@ -70,7 +70,7 @@ class Backup
                 $zip->addFile($uploads->path($file), 'public/uploads/'.$file);
             }
 
-            $zip->addFromString('RESTORING.txt', self::instructions());
+            $zip->addFromString('RESTORING.txt', str_replace('%VERSION%', Version::label(), self::instructions()));
             $zip->close();
         } finally {
             File::delete($snapshotPath);
@@ -94,6 +94,8 @@ class Backup
         return <<<'TEXT'
             Light CMS backup
             ================
+
+            Made with %VERSION%.
 
             This zip holds everything that makes the site its own:
 
