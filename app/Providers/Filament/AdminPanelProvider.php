@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\RequestPasswordReset;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,6 +28,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // "Forgot password?" on the login screen, sent with the site's Email settings
+            ->passwordReset(RequestPasswordReset::class)
             // Name, email and password, changed from the user menu; a new password needs the current one
             ->profile(isSimple: false)
             // Cool slate grays and blue, matching the public site's default look
