@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RedirectToHttps;
 use App\Http\Middleware\RedirectToSetup;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(RedirectToSetup::class);
+        $middleware->prepend([RedirectToHttps::class, RedirectToSetup::class]);
+
+        // Hosts that handle HTTPS in front of the site say so in this header.
+        // Only that header is trusted; visitors' addresses are never taken from headers.
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

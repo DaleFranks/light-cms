@@ -5,12 +5,14 @@ namespace App\Filament\Resources\Users;
 use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Validation\Rules\Password;
@@ -80,12 +82,28 @@ class UserResource extends Resource
                     ->label('Email address')
                     ->searchable()
                     ->sortable(),
+                IconColumn::make('two_step_login')
+                    ->label('Two-step login')
+                    ->state(fn (User $record): bool => $record->hasTwoStepLogin())
+                    ->boolean(),
                 TextColumn::make('created_at')
                     ->label('Added')
                     ->date()
                     ->sortable(),
             ])
             ->recordActions([
+                Action::make('turnOffTwoStepLogin')
+                    ->label('Turn off two-step login')
+                    ->icon(Heroicon::OutlinedShieldExclamation)
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalDescription('For someone who has lost their phone or can\'t get the emailed codes. They\'ll log in with just their password, and can turn two-step login back on from their profile.')
+                    ->visible(fn (User $record): bool => $record->hasTwoStepLogin() && ! self::isCurrentUser($record))
+                    ->action(function (User $record, Action $action): void {
+                        $record->turnOffTwoStepLogin();
+                        $action->success();
+                    })
+                    ->successNotificationTitle('Two-step login turned off'),
                 EditAction::make(),
                 DeleteAction::make()
                     ->hidden(fn (User $record): bool => self::isCurrentUser($record))

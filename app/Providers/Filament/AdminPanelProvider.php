@@ -2,7 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\EmailAuthentication;
 use App\Filament\Auth\RequestPasswordReset;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -32,6 +34,11 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset(RequestPasswordReset::class)
             // Name, email and password, changed from the user menu; a new password needs the current one
             ->profile(isSimple: false)
+            // Optional two-step login, which each admin turns on from their profile
+            ->multiFactorAuthentication([
+                AppAuthentication::make()->recoverable(),
+                EmailAuthentication::make(),
+            ])
             // Cool slate grays and blue, matching the public site's default look
             ->colors([
                 'primary' => Color::Blue,
