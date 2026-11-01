@@ -90,7 +90,7 @@ class EntryForm
                             ->schema([
                                 Select::make('type')
                                     ->options(EntryType::class)
-                                    ->default(EntryType::Page)
+                                    ->default(fn (): EntryType => EntryType::tryFrom((string) request()->query('type')) ?? EntryType::Page)
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(fn (string $operation, Get $get, Set $set, ?Entry $record) => self::fillSlug($operation, $get, $set, $record))
