@@ -78,7 +78,7 @@
     <footer class="site-footer theme-{{ $theme->footer_style->value }}">
         <div class="footer-container">
             <div class="module footer-module">
-                <p class="footer-copyright">&copy; {{ now()->year }} {{ $theme->site_name }}. All rights reserved.</p>
+                {!! $footer->bodyHtml($menu, $theme->site_name) !!}
             </div>
         </div>
     </footer>

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Entry;
+use App\Models\Module;
 use App\Models\Theme;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'theme' => Theme::current(),
                 'menu' => Entry::menu(),
+                'footer' => Module::footer(),
             ]);
         });
     }
