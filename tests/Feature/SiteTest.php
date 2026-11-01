@@ -92,6 +92,23 @@ class SiteTest extends TestCase
             ->assertDontSee('Four.');
     }
 
+    public function test_a_blog_lists_as_many_posts_per_page_as_it_is_set_to(): void
+    {
+        $blog = Entry::factory()->blog()->published()->create(['slug' => 'news', 'posts_per_page' => 2]);
+
+        foreach (['First', 'Second', 'Third'] as $days => $title) {
+            Entry::factory()->post($blog)->published()->create(['title' => "{$title} post", 'published_at' => now()->subDays($days + 1)]);
+        }
+
+        $this->get('/news')
+            ->assertOk()
+            ->assertSeeInOrder(['First post', 'Second post'])
+            ->assertDontSee('Third post')
+            ->assertSee('Page 1 of 2');
+
+        $this->get('/news?page=2')->assertOk()->assertSee('Third post');
+    }
+
     public function test_a_blog_feed_shows_each_posts_first_image(): void
     {
         Image::factory()->create(['filename' => 'first.jpg']);

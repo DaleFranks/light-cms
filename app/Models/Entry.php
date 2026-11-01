@@ -34,6 +34,7 @@ use Illuminate\Support\Str;
     'published_at',
     'nav_order',
     'menu_label',
+    'posts_per_page',
     'parent_id',
     'meta_description',
     'meta_keywords',
@@ -45,6 +46,11 @@ class Entry extends Model
      * The path of the entry shown at the site's root address.
      */
     public const HOME_PATH = 'home';
+
+    /**
+     * How many posts a new blog lists per page: three full rows of three.
+     */
+    public const DEFAULT_POSTS_PER_PAGE = 9;
 
     /**
      * Paths used by the app itself, which no entry may take.
@@ -106,6 +112,7 @@ class Entry extends Model
             'layout' => EntryLayout::class,
             'published_at' => 'datetime',
             'nav_order' => 'integer',
+            'posts_per_page' => 'integer',
         ];
     }
 

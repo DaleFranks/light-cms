@@ -129,6 +129,18 @@ class EntryForm
                                     ->live()
                                     ->helperText(fn (Get $get): ?string => self::layout($get)?->getDescription()),
                             ]),
+                        Section::make('Blog')
+                            ->visible(fn (Get $get): bool => self::isBlog($get))
+                            ->schema([
+                                TextInput::make('posts_per_page')
+                                    ->label('Posts per page')
+                                    ->integer()
+                                    ->minValue(1)
+                                    ->maxValue(100)
+                                    ->default(Entry::DEFAULT_POSTS_PER_PAGE)
+                                    ->required(fn (Get $get): bool => self::isBlog($get))
+                                    ->helperText('How many posts the blog lists before going on to a next page. Multiples of 3 fill the rows evenly.'),
+                            ]),
                         Section::make('Menu')
                             ->hidden(fn (Get $get): bool => self::isPost($get))
                             ->schema([
@@ -205,6 +217,13 @@ class EntryForm
         $type = $get('type');
 
         return $type === EntryType::Post || $type === EntryType::Post->value;
+    }
+
+    private static function isBlog(Get $get): bool
+    {
+        $type = $get('type');
+
+        return $type === EntryType::Blog || $type === EntryType::Blog->value;
     }
 
     private static function layout(Get $get): ?EntryLayout

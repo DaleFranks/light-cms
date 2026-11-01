@@ -75,7 +75,7 @@ class EntryController extends Controller
         $posts = $blog->posts()
             ->published()
             ->orderByRaw('coalesce(published_at, created_at) desc')
-            ->paginate(10);
+            ->paginate($blog->posts_per_page ?: Entry::DEFAULT_POSTS_PER_PAGE);
 
         return view('site.blog', [
             'entry' => $blog,

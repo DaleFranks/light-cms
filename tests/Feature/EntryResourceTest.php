@@ -171,6 +171,36 @@ class EntryResourceTest extends TestCase
         $this->assertSame('news/v1-released', $post->path);
     }
 
+    public function test_a_new_blog_lists_nine_posts_per_page_unless_changed(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm(['type' => EntryType::Blog->value])
+            ->assertFormSet(['posts_per_page' => 9])
+            ->fillForm([
+                'title' => 'News',
+                'slug' => 'news',
+                'status' => EntryStatus::Published->value,
+                'posts_per_page' => 12,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('entries', ['path' => 'news', 'posts_per_page' => 12]);
+    }
+
+    public function test_posts_per_page_is_only_shown_for_blogs(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm(['type' => EntryType::Page->value])
+            ->assertFormFieldHidden('posts_per_page')
+            ->fillForm(['type' => EntryType::Blog->value])
+            ->assertFormFieldVisible('posts_per_page');
+    }
+
     public function test_a_post_must_have_a_blog(): void
     {
         $this->actingAs(User::factory()->create());
