@@ -99,6 +99,15 @@ class ThemeOptions
     private static function header(): array
     {
         return [
+            'hide_site_name_scrolled' => [
+                'tab' => 'Header', 'section' => 'Layout', 'label' => 'Hide the site name once scrolled',
+                'type' => 'toggle', 'default' => false,
+                'help' => 'Gives the header more room while reading. The name is back at the top of the page.',
+                'css' => fn (bool $value): array => [
+                    '--logo-text-scrolled-display' => $value ? 'none' : 'block',
+                    '--logo-text-scrolled-shown' => $value ? '0' : '1',
+                ],
+            ],
             'header_background_scrolled' => self::color('Header', 'Header bar', 'Background, once scrolled',
                 fn (Theme $theme): string => $theme->color_header_background, '--header-bg-color-scrolled', alpha: 0.95),
             'header_link' => self::color('Header', 'Header bar', 'Menu links',
@@ -111,7 +120,9 @@ class ThemeOptions
                 fn (Theme $theme): string => $theme->color_secondary, '--header-logo-text-color'),
             'header_menu_button' => self::color('Header', 'Header bar', 'Menu button (on phones)',
                 fn (Theme $theme): string => $theme->color_secondary, '--header-nav-toggle-color'),
-            'header_height' => self::px('Header', 'Header bar', 'Height', 70, '--header-height', 40, 200),
+            'header_height' => self::px('Header', 'Header bar', 'Height',
+                fn (Theme $theme): float => $theme->site_name_position === SiteNamePosition::Below ? 96 : 70, '--header-height', 40, 200,
+                'Taller automatically when the site name is below the logo.'),
             'header_height_scrolled' => self::px('Header', 'Header bar', 'Height, once scrolled',
                 fn (Theme $theme): float => (float) $theme->option('header_height'), '--header-height-scrolled', 40, 200),
             'header_background_image' => [

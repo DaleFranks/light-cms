@@ -58,6 +58,23 @@ class ThemeOptionsTest extends TestCase
         $this->assertSame('#2563eb', $variables['--color-link']);
     }
 
+    public function test_the_header_is_taller_automatically_when_the_site_name_is_below_the_logo(): void
+    {
+        $theme = Theme::current();
+
+        $this->assertSame('70px', $theme->cssVariables()['--header-height']);
+
+        $theme->update(['site_name_position' => 'below']);
+
+        $this->assertSame('96px', $theme->cssVariables()['--header-height']);
+        $this->assertSame('96px', $theme->cssVariables()['--header-height-scrolled']);
+        $this->assertStringContainsString('site-name-below', $theme->bodyClasses());
+
+        $theme->update(['options' => ['header_height_scrolled' => 72]]);
+
+        $this->assertSame('72px', $theme->cssVariables()['--header-height-scrolled']);
+    }
+
     public function test_footer_layout_settings(): void
     {
         $theme = Theme::current();

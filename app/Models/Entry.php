@@ -33,6 +33,7 @@ use Illuminate\Support\Str;
     'status',
     'published_at',
     'nav_order',
+    'menu_label',
     'parent_id',
     'meta_description',
     'meta_keywords',
@@ -166,7 +167,7 @@ class Entry extends Model
             ->whereNotNull('nav_order')
             ->orderBy('nav_order')
             ->orderBy('title')
-            ->get(['id', 'type', 'title', 'path', 'parent_id', 'nav_order']);
+            ->get(['id', 'type', 'title', 'menu_label', 'path', 'parent_id', 'nav_order']);
 
         $itemsById = $items->keyBy('id');
         $childrenByParent = $items->groupBy('parent_id');
@@ -178,6 +179,14 @@ class Entry extends Model
         return $items
             ->filter(fn (Entry $item): bool => $item->parent_id === null || ! $itemsById->has($item->parent_id))
             ->values();
+    }
+
+    /**
+     * The entry's name in menus: its short menu label if it has one, otherwise its title.
+     */
+    public function menuLabel(): string
+    {
+        return filled($this->menu_label) ? $this->menu_label : $this->title;
     }
 
     /**

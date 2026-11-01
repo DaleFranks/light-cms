@@ -142,6 +142,11 @@ class EntryForm
                                     ->integer()
                                     ->minValue(0)
                                     ->helperText('Leave empty to keep it out of the menu.'),
+                                TextInput::make('menu_label')
+                                    ->label('Menu label')
+                                    ->maxLength(60)
+                                    ->placeholder(fn (Get $get): ?string => $get('title'))
+                                    ->helperText('A shorter name for the menu. Leave empty to use the title.'),
                             ]),
                     ]),
             ]);

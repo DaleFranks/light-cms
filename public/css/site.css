@@ -311,6 +311,7 @@ body {
 
 .logo-text {
     display: var(--logo-text-display, block);
+    white-space: nowrap;
     font-family: var(--font-family-headers);
     font-size: 1.25rem;
     font-weight: 700;
@@ -434,17 +435,15 @@ body {
     font-weight: 600;
 }
 
-/* Hover effects for Desktop Dropdowns */
-@media (min-width: 992px) {
-    .nav-menu li.has-children:hover > .nav-submenu {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-    
-    .nav-menu li.has-children:hover > a .dropdown-arrow {
-        transform: rotate(180deg);
-    }
+/* Hover drop-downs, while the full menu is showing */
+body:not(.nav-collapsed) .nav-menu li.has-children:hover > .nav-submenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+body:not(.nav-collapsed) .nav-menu li.has-children:hover > a .dropdown-arrow {
+    transform: rotate(180deg);
 }
 
 /* Mobile Toggle Switch */
@@ -500,83 +499,83 @@ body {
 }
 
 /* -------------------------------------------------------------
-   Responsive Mobile Menu
+   Collapsed Menu: the menu button and drop-down panel. Used on narrow
+   screens, and on any screen where the site name and menu don't fit on
+   one line (body.nav-collapsed is set by the script after the header).
    ------------------------------------------------------------- */
-@media (max-width: 991px) {
-    .nav-toggle {
-        display: block;
-    }
-    
-    .header-nav {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        height: calc(100vh - var(--header-height));
-        background-color: var(--mobile-nav-bg-color, var(--color-bg-card));
-        padding: 40px 24px;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: opacity var(--transition-normal), transform var(--transition-normal), visibility var(--transition-normal);
-        z-index: 999;
-        display: block;
-        overflow-y: auto;
-    }
-    
-    .site-header.scrolled + .site-main {
-        padding-top: calc(70px + 40px);
-    }
-    
-    .header-nav.open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-    
-    .nav-menu {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 16px;
-    }
-    
-    .nav-menu > li {
-        padding: 0;
-    }
-    
-    .nav-menu a {
-        padding: 12px 16px;
-        font-size: 1.125rem;
-        justify-content: space-between;
-        color: var(--mobile-nav-link-color, var(--color-text-muted));
-    }
-    
-    .nav-menu a:hover,
-    .nav-menu li.active > a,
-    .nav-menu li.active-parent > a {
-        color: var(--mobile-nav-link-hover-color, var(--color-primary));
-        background-color: var(--header-nav-link-hover-bg, rgba(37, 99, 235, 0.06));
-    }
-    
-    .nav-submenu {
-        position: static;
-        opacity: 1;
-        visibility: visible;
-        transform: none;
-        box-shadow: none;
-        border: none;
-        padding: 4px 0 4px 16px;
-        background-color: transparent;
-        display: block; /* Always expanded on mobile */
-    }
-    
-    .nav-submenu .nav-submenu {
-        display: none; /* Limit mobile menu to 2 levels (hide 3rd level and deeper) */
-    }
-    
-    .dropdown-arrow {
-        display: none; /* Hide toggle caret on mobile */
-    }
+body.nav-collapsed .nav-toggle {
+    display: block;
+}
+
+body.nav-collapsed .header-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: calc(100vh - var(--header-height));
+    background-color: var(--mobile-nav-bg-color, var(--color-bg-card));
+    padding: 40px 24px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity var(--transition-normal), transform var(--transition-normal), visibility var(--transition-normal);
+    z-index: 999;
+    display: block;
+    overflow-y: auto;
+}
+
+body.nav-collapsed .site-header.scrolled + .site-main {
+    padding-top: calc(70px + 40px);
+}
+
+body.nav-collapsed .header-nav.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+body.nav-collapsed .nav-menu {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+}
+
+body.nav-collapsed .nav-menu > li {
+    padding: 0;
+}
+
+body.nav-collapsed .nav-menu a {
+    padding: 12px 16px;
+    font-size: 1.125rem;
+    justify-content: space-between;
+    color: var(--mobile-nav-link-color, var(--color-text-muted));
+}
+
+body.nav-collapsed .nav-menu a:hover,
+body.nav-collapsed .nav-menu li.active > a,
+body.nav-collapsed .nav-menu li.active-parent > a {
+    color: var(--mobile-nav-link-hover-color, var(--color-primary));
+    background-color: var(--header-nav-link-hover-bg, rgba(37, 99, 235, 0.06));
+}
+
+body.nav-collapsed .nav-submenu {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    padding: 4px 0 4px 16px;
+    background-color: transparent;
+    display: block; /* Always expanded on mobile */
+}
+
+body.nav-collapsed .nav-submenu .nav-submenu {
+    display: none; /* Limit mobile menu to 2 levels (hide 3rd level and deeper) */
+}
+
+body.nav-collapsed .dropdown-arrow {
+    display: none; /* Hide toggle caret on mobile */
 }
 
 /* -------------------------------------------------------------
@@ -2028,23 +2027,52 @@ select:focus {
 /* -------------------------------------------------------------
    Theme screen options
    ------------------------------------------------------------- */
+/* "Site name in the header: Below the logo" */
+body.site-name-below .header-logo a {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+body.site-name-below.logo-center:not(.nav-collapsed) .header-logo a {
+    align-items: center;
+}
+
+body.site-name-below .logo-text {
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+/* Leave room under the logo for the name, so the pair always fits inside the header */
+body.site-name-below .logo-icon {
+    max-height: calc(var(--curr-header-height, var(--header-height)) - 16px - 1.25rem - 2px);
+}
+
+/* With the name hidden once scrolled, the logo gets the whole height back */
+body.site-name-below .site-header.scrolled .logo-icon {
+    max-height: calc(var(--curr-header-height, var(--header-height)) - 16px - (1.25rem + 2px) * var(--logo-text-scrolled-shown, 1));
+}
+
+/* "Hide the site name once scrolled" */
+.site-header.scrolled .logo-text {
+    display: var(--logo-text-scrolled-display, block);
+}
+
 /* "Keep the header visible while scrolling" switched off */
 body.header-not-sticky .site-header {
     position: absolute;
 }
 
 /* "Centered, with the menu below it" (desktop only; phones keep the menu button) */
-@media (min-width: 992px) {
-    body.logo-center {
-        --header-height: 128px;
-        --header-height-scrolled: 128px;
-    }
+body.logo-center:not(.nav-collapsed) {
+    --header-height: 128px;
+    --header-height-scrolled: 128px;
+}
 
-    body.logo-center .header-container {
-        flex-direction: column;
-        justify-content: center;
-        gap: 12px;
-    }
+body.logo-center:not(.nav-collapsed) .header-container {
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
 }
 
 

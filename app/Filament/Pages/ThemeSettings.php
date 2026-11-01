@@ -7,6 +7,7 @@ use App\FooterStyle;
 use App\LogoPosition;
 use App\Models\Module;
 use App\Models\Theme;
+use App\SiteNamePosition;
 use App\ThemeOptions;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -89,9 +90,6 @@ class ThemeSettings extends Page
                                 TextInput::make('site_name')
                                     ->required()
                                     ->maxLength(100),
-                                Toggle::make('show_site_name')
-                                    ->label('Show the site name next to the logo')
-                                    ->inline(false),
                                 FileUpload::make('logo_path')
                                     ->label('Logo')
                                     ->image()
@@ -132,6 +130,13 @@ class ThemeSettings extends Page
                                 Toggle::make('sticky_header')
                                     ->label('Keep the header visible while scrolling')
                                     ->inline(false),
+                                Select::make('site_name_position')
+                                    ->label('Site name in the header')
+                                    ->options(SiteNamePosition::class)
+                                    ->required()
+                                    ->live()
+                                    ->helperText('Without a logo, the site name always shows.'),
+                                ...self::optionFields('Header', 'Layout'),
                             ]),
                             Section::make('Header bar')->columns(3)->schema([
                                 self::colorPicker('color_header_background', 'Background'),
@@ -334,6 +339,8 @@ class ThemeSettings extends Page
             $theme->{$color} = is_string($value) && preg_match(self::HEX_PATTERN, $value) ? $value : $saved->{$color};
         }
 
+        $position = $get('site_name_position');
+        $theme->site_name_position = $position instanceof SiteNamePosition ? $position : (SiteNamePosition::tryFrom((string) $position) ?? $saved->site_name_position);
         $theme->options = array_filter((array) $get('options'), 'filled');
 
         return $theme;

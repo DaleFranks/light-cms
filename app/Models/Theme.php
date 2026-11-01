@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\FooterStyle;
 use App\LogoPosition;
+use App\SiteNamePosition;
 use App\ThemeOptions;
 use Closure;
 use Database\Factories\ThemeFactory;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Storage;
  */
 #[Fillable([
     'site_name',
-    'show_site_name',
+    'site_name_position',
     'logo_path',
     'favicon_path',
     'logo_position',
@@ -48,7 +49,7 @@ class Theme extends Model
      * @var array<string, mixed>
      */
     public const DEFAULTS = [
-        'show_site_name' => true,
+        'site_name_position' => 'beside',
         'logo_path' => null,
         'favicon_path' => null,
         'logo_position' => 'left',
@@ -106,7 +107,7 @@ class Theme extends Model
     protected function casts(): array
     {
         return [
-            'show_site_name' => 'boolean',
+            'site_name_position' => SiteNamePosition::class,
             'sticky_header' => 'boolean',
             'logo_position' => LogoPosition::class,
             'footer_style' => FooterStyle::class,
@@ -217,6 +218,7 @@ class Theme extends Model
     {
         return collect([
             'logo-'.$this->logo_position->value,
+            $this->site_name_position === SiteNamePosition::Below ? 'site-name-below' : null,
             $this->sticky_header ? null : 'header-not-sticky',
         ])->filter()->implode(' ');
     }
@@ -240,6 +242,15 @@ class Theme extends Model
             ->implode('&');
 
         return 'https://fonts.googleapis.com/css2?'.$families.'&display=swap';
+    }
+
+    /**
+     * Whether the header shows the site name: unless it's set to logo only.
+     * Without a logo, the name always shows, so the header is never empty.
+     */
+    public function showsSiteName(): bool
+    {
+        return $this->site_name_position !== SiteNamePosition::Hidden || ! $this->logoUrl();
     }
 
     public function logoUrl(): ?string

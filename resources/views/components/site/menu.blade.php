@@ -14,7 +14,7 @@
             @endphp
             <li @class(['has-children' => $hasChildren, 'active' => $isActive, 'active-parent' => $isActiveParent])>
                 <a href="{{ $item->url() }}" @class(['nav-dropdown-toggle' => $hasChildren]) @if ($isActive) aria-current="page" @endif>
-                    {{ $item->title }}
+                    {{ $item->menuLabel() }}
                     @if ($hasChildren)
                         <span class="dropdown-arrow"></span>
                     @endif

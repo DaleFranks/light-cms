@@ -54,7 +54,7 @@
                     @if ($theme->logoUrl())
                         <img src="{{ $theme->logoUrl() }}" alt="{{ $theme->site_name }}" class="logo-icon">
                     @endif
-                    @if ($theme->show_site_name || ! $theme->logoUrl())
+                    @if ($theme->showsSiteName())
                         <span class="logo-text">{{ $theme->site_name }}</span>
                     @endif
                 </a>
@@ -69,6 +69,51 @@
             </nav>
         </div>
     </header>
+
+    <script>
+        // Fold the menu into the menu button whenever the site name and menu don't
+        // fit on one line, and always on narrow screens. Runs before the header is
+        // first shown, again once the web fonts have loaded, and when the window is
+        // resized. The fit is judged with the header at full height, so it never
+        // changes while scrolling.
+        (function () {
+            var header = document.querySelector('.site-header');
+            var container = header.querySelector('.header-container');
+            var menu = header.querySelector('.nav-menu');
+            var frame;
+
+            function fitMenu() {
+                var wasScrolled = header.classList.contains('scrolled');
+
+                header.classList.remove('scrolled');
+                document.body.classList.remove('nav-collapsed');
+
+                var overflows = container.scrollWidth > container.clientWidth + 1
+                    || (menu !== null && menu.scrollWidth > menu.clientWidth + 1);
+                var isCollapsed = window.innerWidth < 992 || overflows;
+
+                document.body.classList.toggle('nav-collapsed', isCollapsed);
+                header.classList.toggle('scrolled', wasScrolled);
+
+                if (! isCollapsed) {
+                    header.querySelector('.header-nav').classList.remove('open');
+                    header.querySelector('.nav-toggle').classList.remove('open');
+                    header.querySelector('.nav-toggle').setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            fitMenu();
+
+            if (document.fonts) {
+                document.fonts.ready.then(fitMenu);
+            }
+
+            window.addEventListener('resize', function () {
+                cancelAnimationFrame(frame);
+                frame = requestAnimationFrame(fitMenu);
+            });
+        })();
+    </script>
 
     <main class="site-main">
         <div class="content-container">
@@ -97,14 +142,6 @@
                 var isOpen = headerNav.classList.toggle('open');
                 navToggle.classList.toggle('open', isOpen);
                 navToggle.setAttribute('aria-expanded', isOpen);
-            });
-
-            window.addEventListener('resize', function () {
-                if (window.innerWidth >= 992) {
-                    headerNav.classList.remove('open');
-                    navToggle.classList.remove('open');
-                    navToggle.setAttribute('aria-expanded', 'false');
-                }
             });
 
             scrollHeader();
