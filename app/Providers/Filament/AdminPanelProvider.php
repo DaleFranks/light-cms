@@ -27,6 +27,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // Name, email and password, changed from the user menu; a new password needs the current one
+            ->profile(isSimple: false)
             // Cool slate grays and blue, matching the public site's default look
             ->colors([
                 'primary' => Color::Blue,
