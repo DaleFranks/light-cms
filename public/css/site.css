@@ -1122,8 +1122,13 @@ select:focus {
 .card.theme-dark,
 .card.theme-light,
 .card.theme-primary {
-    margin: 0 !important;
+    margin: 0;
     padding: 28px;
+}
+
+/* A card placed on its own in a page keeps the usual gap from the text above it */
+.prose > * + .card {
+    margin-top: 1.5rem;
 }
 
 /* Keep themed card content layout consistent with standard card styling and preserve typographic hierarchy */
@@ -1906,3 +1911,58 @@ body.header-not-sticky .site-header {
     }
 }
 
+
+/* ==========================================================================
+   PAGE LAYOUTS
+   Standard uses the content width set on the Theme screen (see .content-container).
+   ========================================================================== */
+body.layout-full-width .content-container {
+    max-width: 1200px;
+}
+
+/* Landing: no title, modules run edge to edge as bands, everything else stays in the content column. */
+body.layout-landing .site-main,
+body.layout-landing .site-header.scrolled + .site-main {
+    padding-top: var(--header-height);
+    padding-bottom: 0;
+}
+
+body.layout-landing .content-container {
+    max-width: none;
+    padding: 0;
+}
+
+body.layout-landing .content-container > :not(.prose),
+body.layout-landing .prose > :not(.module) {
+    width: min(100% - 48px, var(--max-width-content) - 48px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body.layout-landing .prose > .card-grid {
+    width: min(100% - 48px, 1200px - 48px);
+}
+
+body.layout-landing .prose > :first-child:not(.module) {
+    margin-top: 40px;
+}
+
+body.layout-landing .prose > :last-child:not(.module) {
+    margin-bottom: 80px;
+}
+
+body.layout-landing .prose > .module {
+    margin: 0;
+    padding: 64px max(24px, (100% - var(--max-width-content)) / 2 + 24px);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Space between a band and the text around it; bands that follow each other touch. */
+body.layout-landing .prose > .module + :not(.module) {
+    margin-top: 3rem;
+}
+
+body.layout-landing .prose > :not(.module):has(+ .module) {
+    margin-bottom: 3rem;
+}

@@ -3,6 +3,7 @@
     'description' => null,
     'keywords' => null,
     'currentPath' => null,
+    'layout' => \App\EntryLayout::Standard,
 ])
 
 <!DOCTYPE html>
@@ -45,7 +46,7 @@
         {!! $theme->safeCustomCss() !!}
     </style>
 </head>
-<body class="{{ $theme->bodyClasses() }}">
+<body class="{{ $theme->bodyClasses() }} layout-{{ $layout->value }}">
     <header class="site-header">
         <div class="header-container">
             <div class="header-logo">

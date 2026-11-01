@@ -142,7 +142,7 @@ class SiteTest extends TestCase
             ->assertSee('--color-primary: #ff0000;', false)
             ->assertSee("--font-family-body: 'Lato', sans-serif;", false)
             ->assertSee('family=Lato:', false)
-            ->assertSee('<body class="logo-left header-not-sticky">', false);
+            ->assertSee('<body class="logo-left header-not-sticky layout-standard">', false);
     }
 
     public function test_custom_css_cannot_close_the_style_element(): void

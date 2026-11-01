@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Entries\Schemas;
 
+use App\EntryLayout;
 use App\EntryStatus;
 use App\EntryType;
 use App\Models\Entry;
@@ -117,6 +118,17 @@ class EntryForm
                                     ->label('Publish date')
                                     ->helperText('Leave empty to publish immediately.'),
                             ]),
+                        Section::make('Layout')
+                            ->schema([
+                                Select::make('layout')
+                                    ->hiddenLabel()
+                                    ->options(EntryLayout::class)
+                                    ->default(EntryLayout::Standard)
+                                    ->selectablePlaceholder(false)
+                                    ->required()
+                                    ->live()
+                                    ->helperText(fn (Get $get): ?string => self::layout($get)?->getDescription()),
+                            ]),
                         Section::make('Menu')
                             ->hidden(fn (Get $get): bool => self::isPost($get))
                             ->schema([
@@ -188,6 +200,13 @@ class EntryForm
         $type = $get('type');
 
         return $type === EntryType::Post || $type === EntryType::Post->value;
+    }
+
+    private static function layout(Get $get): ?EntryLayout
+    {
+        $layout = $get('layout');
+
+        return $layout instanceof EntryLayout ? $layout : EntryLayout::tryFrom((string) $layout);
     }
 
     private static function blogPathPrefix(Get $get): ?string

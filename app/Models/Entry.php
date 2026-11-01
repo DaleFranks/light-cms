@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\EntryLayout;
 use App\EntryStatus;
 use App\EntryType;
 use Database\Factories\EntryFactory;
@@ -27,6 +28,7 @@ use Illuminate\Support\Str;
     'slug',
     'blog_id',
     'body',
+    'layout',
     'status',
     'published_at',
     'nav_order',
@@ -57,6 +59,7 @@ class Entry extends Model
      */
     protected $attributes = [
         'status' => 'draft',
+        'layout' => 'standard',
     ];
 
     protected static function booted(): void
@@ -90,6 +93,7 @@ class Entry extends Model
         return [
             'type' => EntryType::class,
             'status' => EntryStatus::class,
+            'layout' => EntryLayout::class,
             'published_at' => 'datetime',
             'nav_order' => 'integer',
         ];

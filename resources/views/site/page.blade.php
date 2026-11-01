@@ -2,9 +2,12 @@
     :title="$entry->title"
     :description="$entry->meta_description"
     :keywords="$entry->meta_keywords"
+    :layout="$entry->layout"
     :current-path="$entry->path"
 >
-    <h1 class="page-title">{{ $entry->title }}</h1>
+    @if ($entry->layout->showsTitle())
+        <h1 class="page-title">{{ $entry->title }}</h1>
+    @endif
 
     <article class="prose">
         {!! $entry->bodyHtml() !!}

@@ -2,9 +2,12 @@
     :title="$entry->title"
     :description="$entry->meta_description"
     :keywords="$entry->meta_keywords"
+    :layout="$entry->layout"
     :current-path="$entry->blog->path"
 >
-    <h1 class="page-title">{{ $entry->title }}</h1>
+    @if ($entry->layout->showsTitle())
+        <h1 class="page-title">{{ $entry->title }}</h1>
+    @endif
 
     @if ($entry->published_at)
         <div class="post-meta">
