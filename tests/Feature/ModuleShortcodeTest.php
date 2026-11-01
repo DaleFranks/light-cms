@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\BoxStyle;
 use App\Models\Entry;
 use App\Models\Module;
-use App\ModuleStyle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,7 +14,7 @@ class ModuleShortcodeTest extends TestCase
 
     public function test_a_module_is_shown_where_its_shortcode_is_written(): void
     {
-        Module::factory()->create(['slug' => 'cta', 'body' => "## Ready?\n\nGet in **touch**.", 'style' => ModuleStyle::Dark]);
+        Module::factory()->create(['slug' => 'cta', 'body' => "## Ready?\n\nGet in **touch**.", 'style' => BoxStyle::Dark]);
         $entry = Entry::factory()->published()->create(['body' => "Before.\n\n[module:cta]\n\nAfter."]);
 
         $html = $entry->bodyHtml();

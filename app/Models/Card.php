@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Models;
+
+use App\BoxStyle;
+use Database\Factories\CardFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+/**
+ * A short block of Markdown shown as a card, placed in a page with
+ * [card:slug] or side by side in a grid with [cards: slug-1, slug-2].
+ */
+#[Fillable([
+    'name',
+    'slug',
+    'body',
+    'style',
+    'featured',
+])]
+class Card extends Model
+{
+    /** @use HasFactory<CardFactory> */
+    use HasFactory;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'style' => BoxStyle::class,
+            'featured' => 'boolean',
+        ];
+    }
+
+    /**
+     * The body as HTML in a container whose classes give the card's look,
+     * e.g. "card featured-card theme-dark".
+     */
+    public function html(): string
+    {
+        $classes = collect([
+            'card',
+            $this->featured ? 'featured-card' : null,
+            $this->style ? 'theme-'.$this->style->value : null,
+        ])->filter()->implode(' ');
+
+        $body = Str::markdown((string) $this->body, [
+            'html_input' => 'allow',
+            'allow_unsafe_links' => false,
+        ]);
+
+        return '<div class="'.e($classes).'">'."\n".$body."\n".'</div>';
+    }
+}

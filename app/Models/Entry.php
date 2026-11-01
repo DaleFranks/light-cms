@@ -123,34 +123,70 @@ class Entry extends Model
      * The body as HTML. A leading "# Heading" is dropped, because the page title
      * is already shown above the content.
      *
-     * Each [module:slug] is swapped for the module after the Markdown is
-     * converted, so the module's own HTML is never converted twice. A
-     * shortcode naming a module that doesn't exist is left as it was.
+     * Modules and cards are placed with [module:slug], [card:slug] and
+     * [cards: slug-1, slug-2]. They're swapped in after the Markdown is
+     * converted, so their own HTML is never converted twice. A shortcode
+     * naming nothing that exists is left as it was, so the mistake shows.
      */
     public function bodyHtml(): string
     {
         $markdown = preg_replace('/^\s*#\s+.+?(\r?\n)+/', '', (string) $this->body, 1);
-        $markdown = preg_replace('/\[module:\s*([a-z0-9-]+)(?:\.md)?\s*\]/i', '<!--module:$1-->', $markdown);
+        $markdown = preg_replace_callback('/\[(module|card|cards):([^\]]+)\]/i', function (array $match): string {
+            $kind = strtolower($match[1]);
+            $slugs = collect(explode(',', $match[2]))
+                ->map(fn (string $slug): string => strtolower(preg_replace('/\.md$/i', '', trim($slug))));
+
+            if ($slugs->contains(fn (string $slug): bool => ! preg_match('/^[a-z0-9-]+$/', $slug)) || ($kind !== 'cards' && $slugs->count() > 1)) {
+                return $match[0];
+            }
+
+            return "<!--{$kind}:{$slugs->implode(',')}-->";
+        }, $markdown);
 
         $html = Str::markdown($markdown, [
             'html_input' => 'allow',
             'allow_unsafe_links' => false,
         ]);
 
-        if (! preg_match_all('/<!--module:([a-z0-9-]+)-->/i', $html, $matches)) {
+        if (! preg_match_all('/<!--(module|card|cards):([a-z0-9,-]+)-->/', $html, $matches, PREG_SET_ORDER)) {
             return $html;
         }
 
-        $modules = Module::query()
-            ->whereIn('slug', array_map(strtolower(...), $matches[1]))
-            ->get()
-            ->keyBy('slug');
+        $moduleSlugs = [];
+        $cardSlugs = [];
 
-        return preg_replace_callback(
-            '/<!--module:([a-z0-9-]+)-->/i',
-            fn (array $match): string => $modules->get(strtolower($match[1]))?->html() ?? e("[module:{$match[1]}]"),
-            $html,
-        );
+        foreach ($matches as [, $kind, $slugList]) {
+            if ($kind === 'module') {
+                $moduleSlugs[] = $slugList;
+            } else {
+                array_push($cardSlugs, ...explode(',', $slugList));
+            }
+        }
+
+        $modules = Module::query()->whereIn('slug', $moduleSlugs)->get()->keyBy('slug');
+        $cards = Card::query()->whereIn('slug', $cardSlugs)->get()->keyBy('slug');
+
+        return preg_replace_callback('/<!--(module|card|cards):([a-z0-9,-]+)-->/', function (array $match) use ($modules, $cards): string {
+            [, $kind, $slugList] = $match;
+
+            if ($kind === 'module') {
+                return $modules->get($slugList)?->html() ?? e("[module:{$slugList}]");
+            }
+
+            if ($kind === 'card') {
+                return $cards->get($slugList)?->html() ?? e("[card:{$slugList}]");
+            }
+
+            $gridCards = collect(explode(',', $slugList))
+                ->map(fn (string $slug): ?Card => $cards->get($slug))
+                ->filter();
+
+            if ($gridCards->isEmpty()) {
+                return e('[cards: '.str_replace(',', ', ', $slugList).']');
+            }
+
+            return '<div class="card-grid">'."\n".$gridCards->map->html()->implode("\n")."\n".'</div>';
+        }, $html);
     }
 
     /**

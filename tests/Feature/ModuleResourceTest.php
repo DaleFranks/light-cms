@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\BoxStyle;
 use App\Filament\Resources\Modules\Pages\CreateModule;
 use App\Filament\Resources\Modules\Pages\EditModule;
 use App\Filament\Resources\Modules\Pages\ListModules;
 use App\Models\Module;
 use App\Models\User;
-use App\ModuleStyle;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -35,7 +35,7 @@ class ModuleResourceTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         Livewire::test(CreateModule::class)
-            ->fillForm(['name' => 'Call to Action', 'body' => 'Get in touch.', 'style' => ModuleStyle::Dark])
+            ->fillForm(['name' => 'Call to Action', 'body' => 'Get in touch.', 'style' => BoxStyle::Dark])
             ->assertSchemaStateSet(['slug' => 'call-to-action'])
             ->call('create')
             ->assertHasNoFormErrors();

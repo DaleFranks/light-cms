@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\ModuleStyle;
+use App\BoxStyle;
 use Database\Factories\ModuleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -56,7 +56,7 @@ class Module extends Model
     protected function casts(): array
     {
         return [
-            'style' => ModuleStyle::class,
+            'style' => BoxStyle::class,
         ];
     }
 

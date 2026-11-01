@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Modules\Schemas;
 
+use App\BoxStyle;
 use App\Models\Module;
-use App\ModuleStyle;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
@@ -50,9 +50,9 @@ class ModuleForm
                                 ? 'This module is the site footer, shown at the bottom of every page.'
                                 : 'Place the module in a page by writing [module:'.($get('slug') ?: 'slug').'] in its content.'),
                         Select::make('style')
-                            ->options(ModuleStyle::class)
+                            ->options(BoxStyle::class)
                             ->placeholder('None')
-                            ->helperText('Dark and Light show the module as a colored panel.')
+                            ->helperText('Shows the module as a colored panel.')
                             ->hidden(fn (?Module $record): bool => $record?->isFooter() ?? false),
                         MarkdownEditor::make('body')
                             ->label('Content')
