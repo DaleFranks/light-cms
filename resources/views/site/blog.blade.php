@@ -16,6 +16,11 @@
     <div class="card-grid blog-feed">
         @forelse ($posts as $post)
             <article class="card feed-item">
+                @isset($previewImages[$post->id])
+                    <a href="{{ $post->url() }}" class="feed-image" tabindex="-1" aria-hidden="true">
+                        <img src="{{ $previewImages[$post->id] }}" alt="" loading="lazy">
+                    </a>
+                @endisset
                 <h2 class="feed-title">
                     <a href="{{ $post->url() }}">{{ $post->title }}</a>
                 </h2>

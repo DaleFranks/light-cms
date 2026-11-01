@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\EntryStatus;
 use App\Models\Entry;
+use App\Models\Image;
 use App\Models\Theme;
 use Database\Seeders\HomePageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,6 +90,29 @@ class SiteTest extends TestCase
             ->assertOk()
             ->assertSee('One. Two? Three!')
             ->assertDontSee('Four.');
+    }
+
+    public function test_a_blog_feed_shows_each_posts_first_image(): void
+    {
+        Image::factory()->create(['filename' => 'first.jpg']);
+        Image::factory()->create(['filename' => 'second.jpg']);
+        $blog = Entry::factory()->blog()->published()->create(['slug' => 'news']);
+        Entry::factory()->post($blog)->published()->create([
+            'body' => "Intro.\n\n[image:First.jpg|400|left|A picture]\n\n![Another](second.jpg)",
+        ]);
+        Entry::factory()->post($blog)->published()->create([
+            'body' => 'Markdown first. ![Remote](https://example.com/photo.png)',
+        ]);
+        Entry::factory()->post($blog)->published()->create(['body' => 'No pictures here.']);
+        Entry::factory()->post($blog)->published()->create(['body' => '[image:not-in-library.jpg]']);
+
+        $response = $this->get('/news')->assertOk();
+
+        $response->assertSee('<img src="/uploads/images/first.jpg" alt="" loading="lazy">', false)
+            ->assertSee('<img src="https://example.com/photo.png" alt="" loading="lazy">', false)
+            ->assertDontSee('second.jpg')
+            ->assertDontSee('not-in-library.jpg');
+        $this->assertSame(2, substr_count($response->getContent(), 'class="feed-image"'));
     }
 
     public function test_a_post_is_shown_with_a_link_back_to_its_blog(): void

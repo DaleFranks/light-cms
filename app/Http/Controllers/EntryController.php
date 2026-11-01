@@ -66,13 +66,21 @@ class EntryController extends Controller
         return match ($entry->type) {
             EntryType::Page => view('site.page', ['entry' => $entry]),
             EntryType::Post => view('site.post', ['entry' => $entry]),
-            EntryType::Blog => view('site.blog', [
-                'entry' => $entry,
-                'posts' => $entry->posts()
-                    ->published()
-                    ->orderByRaw('coalesce(published_at, created_at) desc')
-                    ->paginate(10),
-            ]),
+            EntryType::Blog => $this->renderBlog($entry),
         };
+    }
+
+    private function renderBlog(Entry $blog): View
+    {
+        $posts = $blog->posts()
+            ->published()
+            ->orderByRaw('coalesce(published_at, created_at) desc')
+            ->paginate(10);
+
+        return view('site.blog', [
+            'entry' => $blog,
+            'posts' => $posts,
+            'previewImages' => Entry::previewImageUrls($posts->items()),
+        ]);
     }
 }

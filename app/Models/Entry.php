@@ -162,6 +162,46 @@ class Entry extends Model
     }
 
     /**
+     * The file or address of the first image in the body, placed with
+     * [image:...] or ![description](...), whichever comes first.
+     */
+    public function firstImageReference(): ?string
+    {
+        if (! preg_match('/\[image:\s*([^|\]]+)|!\[[^\]]*\]\(\s*([^)\s]+)/i', (string) $this->body, $match)) {
+            return null;
+        }
+
+        return trim($match[2] ?? '') ?: trim($match[1]);
+    }
+
+    /**
+     * The address of each post's first image, for the pictures in a blog feed,
+     * keyed by post id. Library images are found in one query; a post whose
+     * first image isn't in the library (or has none) is left out.
+     *
+     * @param  iterable<Entry>  $posts
+     * @return array<int, string>
+     */
+    public static function previewImageUrls(iterable $posts): array
+    {
+        $references = collect($posts)
+            ->mapWithKeys(fn (Entry $post): array => [$post->id => $post->firstImageReference()])
+            ->filter();
+
+        $images = Image::query()
+            ->whereIn('filename', $references->map(fn (string $reference): ?string => Image::nameFromReference($reference))->filter()->unique()->values())
+            ->get()
+            ->keyBy('filename');
+
+        return $references
+            ->map(fn (string $reference): ?string => preg_match('#^https?://#i', $reference)
+                ? $reference
+                : $images->get((string) Image::nameFromReference($reference))?->url())
+            ->filter()
+            ->all();
+    }
+
+    /**
      * Published pages and blogs that are in the menu, with their children
      * nested under them in menu order.
      *

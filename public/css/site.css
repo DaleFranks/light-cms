@@ -1521,6 +1521,26 @@ select:focus {
     color: var(--color-primary);
 }
 
+.feed-image {
+    display: block;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background-color: var(--color-code-bg);
+}
+
+.feed-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card.feed-item .feed-image {
+    margin-bottom: 4px;
+}
+
 .feed-date {
     color: var(--color-text-muted);
     font-size: 0.875rem;
