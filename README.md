@@ -1,6 +1,8 @@
 # Light CMS
 
-A small content management system for getting a website up quickly and keeping it easy to look after. It's made for regular shared hosting (Apache and cPanel): no database server to set up, no command line, and no settings files to edit.
+A lightweight, self-contained content management system for anyone who wants a website that's quick to set up and easy to look after.
+
+Everything lives in the site's own folder: the content in a single SQLite database file, and images in an `uploads` folder. There's no database server or other outside service to connect to. It runs on ordinary shared hosting (Apache and cPanel), with no command line and no settings files to edit.
 
 - **Pages, blogs and posts** written in Markdown, with a menu built from the pages
 - **Cards, modules and sliders** to build up pages without writing HTML
@@ -9,8 +11,6 @@ A small content management system for getting a website up quickly and keeping i
 - **Redirects** (added automatically when a page moves), an automatic **sitemap** and `robots.txt`
 - **Several admins**, optional **two-step login**, password reset by email, and HTTPS enforced on HTTPS sites
 - **One-click backups**, and the database updates itself after an upgrade
-
-Everything is stored in a single SQLite database file inside the site's folder, plus an `uploads` folder for images.
 
 ## Requirements
 

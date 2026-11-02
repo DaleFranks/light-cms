@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "dalefranks/light-cms",
     "type": "project",
-    "description": "A small content management system for getting a website up quickly on shared hosting.",
+    "description": "A lightweight, self-contained CMS: everything lives in the site's own folder, with no database server to connect to.",
     "keywords": ["cms", "content management", "laravel", "filament", "sqlite", "shared hosting"],
     "license": "MIT",
     "require": {
