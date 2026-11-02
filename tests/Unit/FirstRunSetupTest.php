@@ -164,4 +164,12 @@ class FirstRunSetupTest extends TestCase
         $this->assertStringContainsString('<li>&lt;b&gt;Bad&lt;/b&gt; &amp; worse</li>', $page);
         $this->assertStringContainsString('<title>Light CMS can\'t start yet</title>', $page);
     }
+
+    public function test_the_cms_public_folder_is_taken_out_of_the_entry_point_so_laravel_finds_the_site_folder(): void
+    {
+        $this->assertSame('/blog/index.php', FirstRunSetup::withSiteEntryPoint(['SCRIPT_NAME' => '/blog/public/index.php'])['SCRIPT_NAME']);
+        $this->assertSame('/index.php', FirstRunSetup::withSiteEntryPoint(['SCRIPT_NAME' => '/public/index.php'])['SCRIPT_NAME']);
+        $this->assertSame('/index.php', FirstRunSetup::withSiteEntryPoint(['SCRIPT_NAME' => '/index.php'])['SCRIPT_NAME']);
+        $this->assertSame('/blog/index.php', FirstRunSetup::withSiteEntryPoint(['PHP_SELF' => '/blog/public/index.php'])['PHP_SELF']);
+    }
 }

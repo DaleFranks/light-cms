@@ -4,6 +4,7 @@ use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\RedirectToHttps;
 use App\Http\Middleware\RedirectToSetup;
 use App\Http\Middleware\UpdateDatabase;
+use App\Http\Middleware\UseSiteFolder;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // The headers come first so they're added to every response, redirects included
-        $middleware->prepend([AddSecurityHeaders::class, RedirectToHttps::class, RedirectToSetup::class, UpdateDatabase::class]);
+        $middleware->prepend([UseSiteFolder::class, AddSecurityHeaders::class, RedirectToHttps::class, RedirectToSetup::class, UpdateDatabase::class]);
 
         // Hosts that handle HTTPS in front of the site say so in this header.
         // Only that header is trusted; visitors' addresses are never taken from headers.

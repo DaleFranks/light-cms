@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\EntryType;
+use App\Http\Middleware\UseSiteFolder;
 use App\Models\Entry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
@@ -44,7 +45,7 @@ class SitemapController extends Controller
     {
         $lines = [
             'User-agent: *',
-            'Disallow: /admin/',
+            'Disallow: '.UseSiteFolder::path().'/admin/',
             '',
             'Sitemap: '.route('sitemap'),
         ];

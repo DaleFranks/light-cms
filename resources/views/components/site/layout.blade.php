@@ -26,7 +26,7 @@
     @endif
     <meta property="og:type" content="website">
     @if ($theme->logoUrl())
-        <meta property="og:image" content="{{ $theme->logoUrl() }}">
+        <meta property="og:image" content="{{ request()->getSchemeAndHttpHost().$theme->logoUrl() }}">
     @endif
 
     @if ($theme->faviconUrl())

@@ -8,7 +8,7 @@ Pages, posts, cards and modules are written in **Markdown**, a simple way of for
 |---|---|
 | `## A heading` | A heading (`#` is the largest, `######` the smallest) |
 | `**bold**` and `*italic*` | **bold** and *italic* |
-| `[our services](/services)` | A link. Addresses on your own site can start with `/`. |
+| `[our services](/services)` | A link. Addresses on your own site can start with `/`; if the site is in a folder (such as `example.com/blog`), the folder is added automatically. |
 | `- item` on each line | A bulleted list |
 | `1. item` on each line | A numbered list |
 | `> quoted text` | A quotation |

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Http\Middleware\UseSiteFolder;
 use App\Models\Card;
 use App\Models\Form;
 use App\Models\Image;
@@ -88,10 +89,10 @@ class Markdown
             return "\n\n<!--shortcode:".array_key_last($shortcodes)."-->\n\n";
         }, $markdown);
 
-        $html = Str::markdown($markdown, [
+        $html = self::inSiteFolder(Str::markdown($markdown, [
             'html_input' => 'allow',
             'allow_unsafe_links' => false,
-        ]);
+        ]));
 
         if ($shortcodes === []) {
             return $html;
@@ -192,6 +193,24 @@ class Markdown
         }
 
         return Image::query()->whereIn('filename', $filenames)->get()->keyBy('filename')->toBase();
+    }
+
+    /**
+     * Puts the site's folder in front of addresses written from the site's root,
+     * such as [our services](/services), when the site is in a folder (such as
+     * /blog), so they lead to /blog/services. At the root nothing changes.
+     */
+    private static function inSiteFolder(string $html): string
+    {
+        $folder = UseSiteFolder::path();
+
+        if ($folder === '') {
+            return $html;
+        }
+
+        return preg_replace_callback('#(\s(?:href|src)=")(/(?!/)[^"]*)#i', fn (array $match): string => str_starts_with($match[2].'/', $folder.'/')
+            ? $match[0]
+            : $match[1].$folder.$match[2], $html);
     }
 
     /**

@@ -14,6 +14,9 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 require __DIR__.'/../bootstrap/FirstRunSetup.php';
 FirstRunSetup::run(dirname(__DIR__), $_SERVER);
 
+// Let Laravel find the folder the site is in (such as /blog), so its addresses include it...
+$_SERVER = FirstRunSetup::withSiteEntryPoint($_SERVER);
+
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 

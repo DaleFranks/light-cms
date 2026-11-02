@@ -197,6 +197,28 @@ final class FirstRunSetup
     }
 
     /**
+     * The request's server details with the CMS's own public folder taken out
+     * of the script's path. Visits reach public/index.php through the .htaccess
+     * file in the site's folder, so for a site in /blog the script is
+     * /blog/public/index.php, which doesn't match the addresses visitors use.
+     * Given /blog/index.php instead, Laravel finds the folder the site is in,
+     * and every address it makes includes it.
+     *
+     * @param  array<string, mixed>  $server
+     * @return array<string, mixed>
+     */
+    public static function withSiteEntryPoint(array $server): array
+    {
+        foreach (['SCRIPT_NAME', 'PHP_SELF'] as $key) {
+            if (isset($server[$key]) && is_string($server[$key])) {
+                $server[$key] = preg_replace('#/public/index\.php$#', '/index.php', $server[$key]);
+            }
+        }
+
+        return $server;
+    }
+
+    /**
      * The site's address, such as "https://example.com" or
      * "https://example.com/blog" when it's in a folder, worked out from the
      * first visit. The CMS's own public folder is left off the end.
