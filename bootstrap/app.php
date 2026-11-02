@@ -18,7 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // The headers come first so they're added to every response, redirects included
-        $middleware->prepend([UseSiteFolder::class, AddSecurityHeaders::class, RedirectToHttps::class, RedirectToSetup::class, UpdateDatabase::class]);
+        $middleware->prepend([UseSiteFolder::class, AddSecurityHeaders::class, RedirectToSetup::class, UpdateDatabase::class]);
+
+        // After Laravel's own TrustProxies, so HTTPS handled by a server in front
+        // (such as Cloudflare) is recognised and never redirected to itself
+        $middleware->append(RedirectToHttps::class);
 
         // Hosts that handle HTTPS in front of the site say so in this header.
         // Only that header is trusted; visitors' addresses are never taken from headers.

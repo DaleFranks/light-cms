@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Entry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class HttpsTest extends TestCase
@@ -15,6 +16,10 @@ class HttpsTest extends TestCase
         parent::setUp();
 
         Entry::factory()->published()->create(['slug' => 'about']);
+
+        // Each visit to a real server starts with no proxies trusted; a test run
+        // would otherwise keep the setting from an earlier test.
+        Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
     }
 
     public function test_an_https_site_sends_plain_http_visits_to_https(): void
