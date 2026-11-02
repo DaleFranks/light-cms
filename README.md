@@ -1,6 +1,6 @@
 # Light CMS
 
-A small content management system for getting a  website up quickly and keeping it easy to look after. It's made for regular shared hosting (Apache and cPanel): no database server to set up, no command line, and no settings files to edit.
+A small content management system for getting a website up quickly and keeping it easy to look after. It's made for regular shared hosting (Apache and cPanel): no database server to set up, no command line, and no settings files to edit.
 
 - **Pages, blogs and posts** written in Markdown, with a menu built from the pages
 - **Cards, modules and sliders** to build up pages without writing HTML
