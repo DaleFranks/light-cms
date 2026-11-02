@@ -1,12 +1,12 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "dalefranks/light-cms",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "A small content management system for getting a website up quickly on shared hosting.",
+    "keywords": ["cms", "content management", "laravel", "filament", "sqlite", "shared hosting"],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4.1",
         "filament/filament": "^5.11",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0"

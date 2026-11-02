@@ -40,6 +40,10 @@ Your pages, images, settings and accounts aren't in the release zip, so uploadin
 
 How each part of the admin works: **[docs](docs/README.md)**.
 
+## License
+
+Light CMS is free and open-source software under the [MIT License](LICENSE). Copyright (c) 2026 Dale Franks.
+
 ## For developers
 
 Light CMS is built with Laravel and Filament, using SQLite.
