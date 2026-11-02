@@ -14,7 +14,7 @@ How each screen in the admin (at `/admin`) works.
 - [Cards and Modules](cards-and-modules.md): reusable boxes and sections, and the footer
 - [Sliders](sliders.md): rotating images
 - [Forms](forms.md): contact forms, newsletter sign-ups and their submissions
-- [Redirects](redirects.md): sending old addresses to new ones
+- [Redirects](redirects.md): sending old addresses to new ones, and `www.` to your main address
 
 **Settings**
 
