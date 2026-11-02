@@ -6,6 +6,7 @@ use App\EntryLayout;
 use App\EntryStatus;
 use App\EntryType;
 use App\Models\Entry;
+use App\Models\Image;
 use Closure;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
@@ -73,15 +74,34 @@ class EntryForm
                                         ? 'The last part of the post\'s address, e.g. "my-first-post".'
                                         : 'The address of the page, e.g. "about" or "services/design".'),
                                 MarkdownEditor::make('body')
-                                    ->label('Content'),
+                                    ->label('Content')
+                                    // Sent when the editor loses focus, so the featured image choices follow the content
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (Get $get, Set $set): void {
+                                        if (! Entry::libraryImagesIn($get('body'))->has((string) $get('featured_image'))) {
+                                            $set('featured_image', null);
+                                        }
+                                    }),
                             ]),
-                        Section::make('Search engines')
+                        Section::make('Search engines & sharing')
                             ->collapsible()
                             ->schema([
                                 TextInput::make('meta_description')
                                     ->maxLength(255),
                                 TextInput::make('meta_keywords')
                                     ->maxLength(255),
+                                Select::make('featured_image')
+                                    ->label('Featured image')
+                                    ->native(false)
+                                    ->allowHtml()
+                                    ->placeholder('The first image in the content')
+                                    ->options(fn (Get $get): array => self::featuredImageOptions($get('body')))
+                                    ->afterStateHydrated(function (Select $component, ?string $state, Get $get): void {
+                                        if (filled($state) && ! Entry::libraryImagesIn($get('body'))->has($state)) {
+                                            $component->state(null);
+                                        }
+                                    })
+                                    ->helperText('The picture shown when this page is shared on social media (and, for a post, in its blog\'s list). Choose from the images in this page\'s own content; images in cards, modules and sliders aren\'t included. Leave it empty to use the first one.'),
                             ]),
                     ]),
                 Group::make()
@@ -162,6 +182,21 @@ class EntryForm
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * The images in the content as choices for the featured image, each with
+     * a small preview.
+     *
+     * @return array<string, string>
+     */
+    private static function featuredImageOptions(?string $body): array
+    {
+        return Entry::libraryImagesIn($body)
+            ->map(fn (Image $image, string $name): string => '<span style="display: inline-flex; align-items: center; gap: 0.5rem;">'
+                .'<img src="'.e($image->url()).'" alt="" style="width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: 0.25rem;">'
+                .e($name).'</span>')
+            ->all();
     }
 
     /**

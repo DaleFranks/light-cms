@@ -4,7 +4,16 @@
     'keywords' => null,
     'currentPath' => null,
     'layout' => \App\EntryLayout::Standard,
+    'shareImage' => null,
+    'shareType' => 'website',
 ])
+
+@php
+    // The picture for link previews on social media: the page's own image, or else the logo
+    $sharePicture = $shareImage ?? ($theme->logoUrl()
+        ? ['url' => request()->getSchemeAndHttpHost().$theme->logoUrl(), 'width' => null, 'height' => null]
+        : null);
+@endphp
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -24,10 +33,17 @@
     @if (filled($description))
         <meta property="og:description" content="{{ $description }}">
     @endif
-    <meta property="og:type" content="website">
-    @if ($theme->logoUrl())
-        <meta property="og:image" content="{{ request()->getSchemeAndHttpHost().$theme->logoUrl() }}">
+    <meta property="og:type" content="{{ $shareType }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:site_name" content="{{ $theme->site_name }}">
+    @if ($sharePicture)
+        <meta property="og:image" content="{{ $sharePicture['url'] }}">
+        @if ($sharePicture['width'] && $sharePicture['height'])
+            <meta property="og:image:width" content="{{ $sharePicture['width'] }}">
+            <meta property="og:image:height" content="{{ $sharePicture['height'] }}">
+        @endif
     @endif
+    <meta name="twitter:card" content="{{ $shareImage ? 'summary_large_image' : 'summary' }}">
 
     @if ($theme->faviconUrl())
         <link rel="icon" href="{{ $theme->faviconUrl() }}">

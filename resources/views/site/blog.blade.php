@@ -2,6 +2,7 @@
     :title="$entry->title"
     :description="$entry->meta_description"
     :keywords="$entry->meta_keywords"
+    :share-image="$entry->shareImage()"
     :layout="$entry->layout"
     :current-path="$entry->path"
 >

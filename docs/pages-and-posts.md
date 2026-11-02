@@ -11,7 +11,11 @@ Everything with its own address on the site is listed here. There are three type
 - **Title**: shown at the top of the page and in the browser tab.
 - **Slug**: the page's address. It's filled in from the title as you type, and numbered if that address is taken (`about-2`). Pages and blogs can use slashes to sit "under" another address, such as `services/design`. A post's slug is just its own part.
 - **Content**: written in Markdown, with shortcodes. See [Writing content](writing-content.md).
-- **Search engines**: an optional description and keywords. The description is often shown under the page's title in search results.
+- **Search engines & sharing**:
+  - an optional **description** and **keywords**. The description is often shown under the page's title in search results, and in link previews on social media.
+  - **Featured image**: the picture shown when the page is shared on social media (Facebook, LinkedIn, X and others), and, for a post, on its card in the blog's list. Choose from the images in the page's own content; images in cards, modules and sliders placed on the page aren't offered. Left empty, the first image in the content is used, and a page with no images uses the logo. If the chosen image is later taken out of the content, the first image is used instead.
+
+Social media sites remember a link's preview once they've seen it. After changing a page's featured image, use Facebook's [Sharing Debugger](https://developers.facebook.com/tools/debug/) (paste the link and click **Scrape Again**) to refresh it there.
 
 The page with the slug **`home`** is the home page, shown at the site's main address.
 
@@ -42,7 +46,7 @@ When the menu doesn't fit beside the logo (and always on phones), it folds into 
 
 ## Blogs
 
-A blog's page shows its own content first, then its published posts as cards: each post's first image, its title, date, and the first three sentences.
+A blog's page shows its own content first, then its published posts as cards: each post's featured image (or else its first image), its title, date, and the first three sentences.
 
 - **Posts per page** (in the Blog box): how many posts are listed before going on to a next page. It starts at 9, which fills three rows of three.
 

@@ -38,6 +38,7 @@ use Illuminate\Support\Str;
     'parent_id',
     'meta_description',
     'meta_keywords',
+    'featured_image',
     'author_id',
 ])]
 class Entry extends Model
@@ -169,22 +170,93 @@ class Entry extends Model
     }
 
     /**
-     * The file or address of the first image in the body, placed with
-     * [image:...] or ![description](...), whichever comes first.
+     * The files or addresses of the images in some content, in the order they
+     * appear, placed with [image:...] or ![description](...).
+     *
+     * @return list<string>
      */
-    public function firstImageReference(): ?string
+    public static function imageReferencesIn(?string $body): array
     {
-        if (! preg_match('/\[image:\s*([^|\]]+)|!\[[^\]]*\]\(\s*([^)\s]+)/i', (string) $this->body, $match)) {
-            return null;
-        }
+        preg_match_all('/\[image:\s*([^|\]]+)|!\[[^\]]*\]\(\s*([^)\s]+)/i', (string) $body, $matches, PREG_SET_ORDER);
 
-        return trim($match[2] ?? '') ?: trim($match[1]);
+        return array_values(array_filter(array_map(
+            fn (array $match): string => trim($match[2] ?? '') ?: trim($match[1]),
+            $matches,
+        )));
     }
 
     /**
-     * The address of each post's first image, for the pictures in a blog feed,
-     * keyed by post id. Library images are found in one query; a post whose
-     * first image isn't in the library (or has none) is left out.
+     * The library images some content uses, in the order they first appear,
+     * keyed by file name: the choices for a page's featured image.
+     *
+     * @return \Illuminate\Support\Collection<string, Image>
+     */
+    public static function libraryImagesIn(?string $body): \Illuminate\Support\Collection
+    {
+        $names = collect(self::imageReferencesIn($body))
+            ->reject(fn (string $reference): bool => (bool) preg_match('#^https?://#i', $reference))
+            ->map(fn (string $reference): ?string => Image::nameFromReference($reference))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $images = Image::query()->whereIn('filename', $names)->get()->keyBy('filename');
+
+        return $names->filter(fn (string $name): bool => $images->has($name))
+            ->mapWithKeys(fn (string $name): array => [$name => $images->get($name)]);
+    }
+
+    /**
+     * The image that stands for this page or post when it's shared and in its
+     * blog's list: the featured image chosen for it, as long as the content
+     * still uses it, otherwise the first image in the content.
+     */
+    public function featuredImageReference(): ?string
+    {
+        $references = self::imageReferencesIn($this->body);
+
+        if (filled($this->featured_image)) {
+            foreach ($references as $reference) {
+                if (Image::nameFromReference($reference) === $this->featured_image) {
+                    return $reference;
+                }
+            }
+        }
+
+        return $references[0] ?? null;
+    }
+
+    /**
+     * The picture offered to social media when this page is shared, as a full
+     * address with its size when known, or nothing if the content has none.
+     *
+     * @return array{url: string, width: ?int, height: ?int}|null
+     */
+    public function shareImage(): ?array
+    {
+        $reference = $this->featuredImageReference();
+
+        if ($reference === null) {
+            return null;
+        }
+
+        if (preg_match('#^https?://#i', $reference)) {
+            return ['url' => $reference, 'width' => null, 'height' => null];
+        }
+
+        $image = Image::query()->where('filename', Image::nameFromReference($reference))->first();
+
+        return $image === null ? null : [
+            'url' => request()->getSchemeAndHttpHost().$image->url(),
+            'width' => $image->width ?: null,
+            'height' => $image->height ?: null,
+        ];
+    }
+
+    /**
+     * The address of each post's featured (or else first) image, for the
+     * pictures in a blog feed, keyed by post id. Library images are found in
+     * one query; a post whose image isn't in the library (or has none) is left out.
      *
      * @param  iterable<Entry>  $posts
      * @return array<int, string>
@@ -192,7 +264,7 @@ class Entry extends Model
     public static function previewImageUrls(iterable $posts): array
     {
         $references = collect($posts)
-            ->mapWithKeys(fn (Entry $post): array => [$post->id => $post->firstImageReference()])
+            ->mapWithKeys(fn (Entry $post): array => [$post->id => $post->featuredImageReference()])
             ->filter();
 
         $images = Image::query()

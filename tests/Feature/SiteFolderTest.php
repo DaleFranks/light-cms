@@ -48,7 +48,7 @@ class SiteFolderTest extends TestCase
             ->assertSee('src="/blog/uploads/images/team.jpg"', false)
             ->assertSee('<a href="/blog/services">our services</a>', false)
             ->assertSee('<a href="https://example.org/x">elsewhere</a>', false)
-            ->assertSee('content="http://localhost/blog/uploads/theme/logo.png"', false);
+            ->assertSee('<meta property="og:image" content="http://localhost/blog/uploads/images/team.jpg">', false);
     }
 
     public function test_a_site_in_a_folder_keeps_its_login_cookie_and_robots_txt_to_that_folder(): void
