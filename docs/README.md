@@ -22,5 +22,6 @@ How each screen in the admin (at `/admin`) works.
 - [Email](email.md): how the site sends email
 - [Users and security](users-and-security.md): admin accounts, your profile, two-step login and passwords
 - [Backup](backup.md): downloading a backup and restoring one
+- [Upgrading](upgrading.md): installing a new version, the automatic database update, and what to do if it can't run
 
 Search engines are looked after automatically: every site has a sitemap at `/sitemap.xml` that lists everything published, and a `robots.txt` that points to it.

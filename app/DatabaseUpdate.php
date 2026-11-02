@@ -2,10 +2,11 @@
 
 namespace App;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Throwable;
 
 /**
  * Brings the database up to date after a newer copy of the CMS is uploaded
@@ -22,6 +23,56 @@ class DatabaseUpdate
      * How many copies made before updates are kept.
      */
     public const KEPT_COPIES = 3;
+
+    /**
+     * How long to wait after a failed update before trying again, in minutes.
+     */
+    public const RETRY_AFTER_MINUTES = 10;
+
+    /**
+     * Run the update if it's due, without ever stopping the site: if it fails,
+     * the reason is logged and noted for the admin, the site carries on with
+     * the database as it was, and it's tried again a little later.
+     */
+    public static function runSafely(): void
+    {
+        $failure = self::failure();
+
+        if ($failure !== null && now()->subMinutes(self::RETRY_AFTER_MINUTES)->lt($failure['at'])) {
+            return;
+        }
+
+        try {
+            self::run();
+            File::delete(self::failurePath());
+        } catch (Throwable $exception) {
+            report($exception);
+
+            File::put(self::failurePath(), json_encode([
+                'at' => now()->toIso8601String(),
+                'message' => $exception->getMessage(),
+            ]));
+        }
+    }
+
+    /**
+     * The last failed update, if the database is still waiting for one.
+     *
+     * @return array{at: Carbon, message: string}|null
+     */
+    public static function failure(): ?array
+    {
+        if (! File::exists(self::failurePath())) {
+            return null;
+        }
+
+        $failure = json_decode((string) File::get(self::failurePath()), true);
+
+        return [
+            'at' => Carbon::parse($failure['at'] ?? '2000-01-01'),
+            'message' => (string) ($failure['message'] ?? ''),
+        ];
+    }
 
     public static function isNeeded(): bool
     {
@@ -78,11 +129,16 @@ class DatabaseUpdate
         $folder = storage_path('app/backups');
         File::ensureDirectoryExists($folder);
 
-        DB::statement('VACUUM INTO ?', [$folder.'/before-update-'.now()->format('Y-m-d-His').'.sqlite']);
+        DatabaseCopy::to($folder.'/before-update-'.now()->format('Y-m-d-His').'.sqlite');
 
         $copies = glob($folder.'/before-update-*.sqlite') ?: [];
         rsort($copies);
         File::delete(array_slice($copies, self::KEPT_COPIES));
+    }
+
+    private static function failurePath(): string
+    {
+        return storage_path('app/database-update-failed');
     }
 
     private static function markerPath(): string

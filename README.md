@@ -15,13 +15,14 @@ Everything lives in the site's own folder: the content in a single SQLite databa
 ## Requirements
 
 - PHP **8.4.1 or newer**, with these extensions (most hosts have them all): `pdo_sqlite`, `mbstring`, `intl`, `openssl`, `fileinfo`, `tokenizer`, `ctype`, `dom`, `xmlreader`, `filter` and `session`. The `zip` extension is also needed for the Backup screen.
+- **SQLite 3.26 or newer**, the database library PHP uses (3.26 is what Red Hat, AlmaLinux and CloudLinux 8 servers have)
 - Apache with `mod_rewrite` (standard on cPanel hosting)
 
 If something is missing, the site says what on its first visit, in words you can pass on to your host.
 
 ## Installing
 
-1. Download **`light-cms-<version>.zip`** from the [Releases](../../releases) page. Use that file, not the "Source code" downloads, which can't run on their own.
+1. Download **`light-cms-<version>.zip`** from the [Releases](https://github.com/DaleFranks/light-cms/releases) page. Use that file, not the "Source code" downloads, which can't run on their own.
 2. Unzip it. Upload everything inside the `light-cms` folder into your site's web folder (usually `public_html`), or into a subfolder of it.
 3. Open the site in your browser, using `https://` if your site has a certificate.
 4. Fill in the setup screen: the site's name, and your name, email address and password. Do this straight after uploading, since whoever fills it in first becomes the admin.
@@ -32,7 +33,7 @@ The admin is at **`/admin`**. See [Getting started](docs/getting-started.md) for
 
 1. On the **Backup** screen, download a backup.
 2. Upload the new release's files over the old ones.
-3. Open the site. On that first visit it updates its database by itself, after saving a copy of it.
+3. Open the site. On that first visit it updates its database by itself, after saving a copy of it. If that can't be done, the site keeps working as it was and the admin shows why; see [Upgrading](docs/upgrading.md).
 
 Your pages, images, settings and accounts aren't in the release zip, so uploading a new version never overwrites them.
 

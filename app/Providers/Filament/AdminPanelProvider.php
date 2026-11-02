@@ -48,6 +48,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             // Which version this is, at the bottom of the menu
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn (): View => view('filament.version'))
+            // A warning while a database update is waiting because it failed
+            ->renderHook(PanelsRenderHook::CONTENT_START, fn (): View => view('filament.database-update-warning'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

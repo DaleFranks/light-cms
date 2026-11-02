@@ -10,7 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Brings the database up to date on the first visit after a newer copy of the
- * CMS has been uploaded. Sites that aren't set up yet are left to the setup
+ * CMS has been uploaded. If that fails, the site carries on as it was and the
+ * update is tried again later. Sites that aren't set up yet are left to the setup
  * screen, which creates the database itself.
  */
 class UpdateDatabase
@@ -23,7 +24,7 @@ class UpdateDatabase
     public function handle(Request $request, Closure $next): Response
     {
         if (Installation::isChecked() && DatabaseUpdate::isNeeded() && Installation::isComplete()) {
-            DatabaseUpdate::run();
+            DatabaseUpdate::runSafely();
         }
 
         return $next($request);

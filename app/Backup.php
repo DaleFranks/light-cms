@@ -3,7 +3,6 @@
 namespace App;
 
 use App\Models\Image;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -47,7 +46,7 @@ class Backup
         try {
             // A snapshot rather than the live file, so a change made while the backup
             // is being made can't leave a half-written copy.
-            DB::statement('VACUUM INTO ?', [$snapshotPath]);
+            DatabaseCopy::to($snapshotPath);
 
             $zip = new ZipArchive;
 

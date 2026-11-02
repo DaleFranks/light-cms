@@ -43,9 +43,9 @@ class FirstRunSetupTest extends TestCase
         parent::tearDown();
     }
 
-    private function firstRun(string $phpVersion = '8.4.10', array $missingExtensions = []): FirstRunSetup
+    private function firstRun(string $phpVersion = '8.4.10', array $missingExtensions = [], string $sqliteVersion = '3.26.0'): FirstRunSetup
     {
-        return new FirstRunSetup($this->root, $phpVersion, fn (string $extension): bool => ! in_array($extension, $missingExtensions, true));
+        return new FirstRunSetup($this->root, $phpVersion, fn (string $extension): bool => ! in_array($extension, $missingExtensions, true), $sqliteVersion);
     }
 
     public function test_a_host_that_meets_the_requirements_has_no_problems(): void
@@ -59,6 +59,21 @@ class FirstRunSetupTest extends TestCase
 
         $this->assertCount(1, $problems);
         $this->assertStringContainsString('PHP 8.4.1 or newer. This site is running PHP 8.2.12.', $problems[0]);
+    }
+
+    public function test_too_old_an_sqlite_is_explained_and_3_26_is_accepted(): void
+    {
+        $this->assertSame([], $this->firstRun(sqliteVersion: '3.26.0')->problems());
+
+        $problems = $this->firstRun(sqliteVersion: '3.7.17')->problems();
+
+        $this->assertCount(1, $problems);
+        $this->assertStringContainsString('SQLite 3.26.0 or newer. This server has SQLite 3.7.17.', $problems[0]);
+    }
+
+    public function test_the_sqlite_version_is_looked_up_when_not_given(): void
+    {
+        $this->assertSame([], (new FirstRunSetup($this->root, '8.4.10', fn (): bool => true))->problems());
     }
 
     public function test_missing_extensions_are_named_with_what_they_are_for(): void

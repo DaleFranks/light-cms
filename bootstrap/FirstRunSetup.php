@@ -22,6 +22,12 @@ final class FirstRunSetup
     public const MINIMUM_PHP_VERSION = '8.4.1';
 
     /**
+     * The oldest SQLite the CMS is tested on (the one in Red Hat and
+     * AlmaLinux 8, common on cPanel hosts).
+     */
+    public const MINIMUM_SQLITE_VERSION = '3.26.0';
+
+    /**
      * PHP extensions the CMS needs, with a plain description of what each is for.
      *
      * @var array<string, string>
@@ -77,13 +83,33 @@ final class FirstRunSetup
     private $isExtensionLoaded;
 
     /**
+     * The SQLite version PHP uses, or null to look it up.
+     *
+     * @var string|null
+     */
+    private $sqliteVersion;
+
+    /**
      * @param  callable(string): bool|null  $isExtensionLoaded
      */
-    public function __construct(string $root, string $phpVersion = PHP_VERSION, ?callable $isExtensionLoaded = null)
+    public function __construct(string $root, string $phpVersion = PHP_VERSION, ?callable $isExtensionLoaded = null, ?string $sqliteVersion = null)
     {
         $this->root = $root;
         $this->phpVersion = $phpVersion;
         $this->isExtensionLoaded = $isExtensionLoaded ?? 'extension_loaded';
+        $this->sqliteVersion = $sqliteVersion;
+    }
+
+    /**
+     * The version of the SQLite library PHP uses, such as "3.26.0".
+     */
+    private function sqliteVersion(): string
+    {
+        if ($this->sqliteVersion === null) {
+            $this->sqliteVersion = (string) (new PDO('sqlite::memory:'))->query('select sqlite_version()')->fetchColumn();
+        }
+
+        return $this->sqliteVersion;
     }
 
     /**
@@ -133,6 +159,11 @@ final class FirstRunSetup
                 $problems[] = 'The PHP extension "'.$extension.'" ('.$purpose.') isn\'t switched on. It can usually be '
                     .'switched on in your hosting control panel, under PHP settings or extensions.';
             }
+        }
+
+        if (($this->isExtensionLoaded)('pdo_sqlite') && version_compare($this->sqliteVersion(), self::MINIMUM_SQLITE_VERSION, '<')) {
+            $problems[] = 'Your host\'s PHP needs SQLite '.self::MINIMUM_SQLITE_VERSION.' or newer. This server has SQLite '
+                .$this->sqliteVersion().'. Ask your host whether a newer PHP or server version is available.';
         }
 
         if (! is_file($this->root.'/.env.example')) {

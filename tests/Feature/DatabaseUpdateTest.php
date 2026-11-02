@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\DatabaseCopy;
 use App\DatabaseUpdate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -32,6 +33,7 @@ class DatabaseUpdateTest extends TestCase
 
     protected function tearDown(): void
     {
+        DatabaseCopy::$useVacuumInto = null;
         File::deleteDirectory($this->storagePath);
 
         parent::tearDown();
@@ -51,6 +53,40 @@ class DatabaseUpdateTest extends TestCase
         $this->assertSame($changeCount, DB::table('migrations')->count());
         $this->assertSame(DatabaseUpdate::latestVersion(), DatabaseUpdate::appliedVersion());
         $this->assertCount(1, glob($this->storagePath.'/app/backups/before-update-*.sqlite'));
+    }
+
+    public function test_a_failed_update_keeps_the_site_running_and_is_retried_later(): void
+    {
+        Artisan::call('migrate:rollback', ['--step' => 1]);
+        $changeCount = DB::table('migrations')->count();
+        File::put($this->storagePath.'/app/database-version', "an-older-version\n");
+        User::factory()->create();
+
+        // The in-memory test database can't be copied the older way, so the safety copy fails
+        DatabaseCopy::$useVacuumInto = false;
+
+        $this->get('/no-such-page')->assertNotFound();
+        $this->assertSame($changeCount, DB::table('migrations')->count());
+        $failedAt = DatabaseUpdate::failure()['at'];
+        $this->assertStringContainsString('isn\'t a file', DatabaseUpdate::failure()['message']);
+
+        // Not tried again straight away
+        $this->travel(5)->minutes();
+        $this->get('/no-such-page')->assertNotFound();
+        $this->assertTrue($failedAt->eq(DatabaseUpdate::failure()['at']));
+
+        // The admin says so
+        $this->actingAs(User::query()->first())->get('/admin')->assertOk()
+            ->assertSee('The database couldn\'t be updated for this version of Light CMS.', false);
+
+        // Tried again later, and this time it works
+        DatabaseCopy::$useVacuumInto = null;
+        $this->travel(6)->minutes();
+        $this->get('/no-such-page');
+
+        $this->assertNull(DatabaseUpdate::failure());
+        $this->assertSame($changeCount + 1, DB::table('migrations')->count());
+        $this->get('/admin')->assertDontSee('couldn\'t be updated', false);
     }
 
     public function test_an_up_to_date_site_does_nothing(): void

@@ -25,4 +25,4 @@ The Backup button needs PHP's `zip` extension. If the server doesn't have it, th
 
 ## Copies made before updates
 
-When a new version of Light CMS updates the database (on the first visit after an upgrade), it first saves a copy of the database in `storage/app/backups/`, named `before-update-` with the date and time. The newest three are kept. To go back to one, put it in place of `database/database.sqlite`.
+When a new version of Light CMS updates the database (on the first visit after an upgrade; see [Upgrading](upgrading.md)), it first saves a copy of the database in `storage/app/backups/`, named `before-update-` with the date and time. The newest three are kept. To go back to one, put it in place of `database/database.sqlite`.
