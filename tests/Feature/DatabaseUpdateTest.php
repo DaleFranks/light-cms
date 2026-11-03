@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\DatabaseCopy;
 use App\DatabaseUpdate;
 use App\Models\User;
+use App\SetupKey;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -134,7 +135,12 @@ class DatabaseUpdateTest extends TestCase
 
     public function test_the_setup_screen_records_the_database_as_up_to_date(): void
     {
+        $this->app->useEnvironmentPath($this->storagePath);
+        File::put($this->storagePath.'/.env', "APP_URL=http://localhost\n");
+        SetupKey::create();
+
         $this->post('/setup', [
+            'setup_key' => trim(File::get($this->storagePath.'/'.SetupKey::FILE_NAME)),
             'site_name' => 'Acme Studio',
             'name' => 'Ann Admin',
             'email' => 'ann@acme.test',

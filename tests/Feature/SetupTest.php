@@ -8,8 +8,10 @@ use App\Models\Entry;
 use App\Models\Form;
 use App\Models\Theme;
 use App\Models\User;
+use App\SetupKey;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class SetupTest extends TestCase
@@ -29,6 +31,10 @@ class SetupTest extends TestCase
         File::ensureDirectoryExists($this->storagePath.'/app');
         $this->app->useStoragePath($this->storagePath);
 
+        // The same for the settings file and setup key, so the real ones are never touched
+        $this->app->useEnvironmentPath($this->storagePath);
+        File::put($this->storagePath.'/.env', "APP_NAME=Acme\nAPP_URL=http://first-visit.test\nLOG_LEVEL=error\n");
+
         // The database these tests use is already up to date
         DatabaseUpdate::markApplied();
     }
@@ -42,7 +48,10 @@ class SetupTest extends TestCase
 
     private function setUpDetails(array $overrides = []): array
     {
+        SetupKey::create();
+
         return [
+            'setup_key' => $this->setupKey(),
             'site_name' => 'Acme Studio',
             'name' => 'Ann Admin',
             'email' => 'ann@acme.test',
@@ -50,6 +59,16 @@ class SetupTest extends TestCase
             'password_confirmation' => 'correct-horse',
             ...$overrides,
         ];
+    }
+
+    private function setupKey(): string
+    {
+        return trim(File::get($this->keyFile()));
+    }
+
+    private function keyFile(): string
+    {
+        return $this->storagePath.'/'.SetupKey::FILE_NAME;
     }
 
     public function test_until_setup_is_done_every_visit_goes_to_the_setup_screen(): void
@@ -67,6 +86,157 @@ class SetupTest extends TestCase
             ->assertSee('Set up your site')
             ->assertSee('name="site_name"', false)
             ->assertSee('name="password_confirmation"', false);
+    }
+
+    public function test_opening_the_setup_screen_creates_a_key_and_keeps_it_on_later_visits(): void
+    {
+        $this->get('/setup')->assertOk()->assertSee('name="setup_key"', false)->assertSee(SetupKey::FILE_NAME);
+
+        $key = $this->setupKey();
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $key);
+
+        $this->get('/setup')->assertOk()->assertDontSee($key);
+        $this->assertSame($key, $this->setupKey());
+    }
+
+    public function test_a_deleted_key_file_is_replaced_when_the_setup_screen_is_reopened(): void
+    {
+        $this->get('/setup');
+        $oldKey = $this->setupKey();
+        File::delete($this->keyFile());
+
+        $this->get('/setup')->assertOk();
+
+        $this->assertNotSame($oldKey, $this->setupKey());
+    }
+
+    /**
+     * @return array<string, array{mixed}>
+     */
+    public static function refusedKeys(): array
+    {
+        return [
+            'missing' => [null],
+            'empty' => [''],
+            'wrong' => ['0123456789abcdef0123456789abcdef'],
+            'not text' => [['a key']],
+        ];
+    }
+
+    #[DataProvider('refusedKeys')]
+    public function test_setup_without_the_right_key_creates_nothing($key): void
+    {
+        $details = $this->setUpDetails(['setup_key' => $key]);
+
+        $this->from('/setup')->post('/setup', $details)
+            ->assertRedirect('/setup')
+            ->assertSessionHasErrors('setup_key');
+
+        $this->assertSame(0, User::query()->count());
+        $this->assertGuest();
+        $this->assertFalse(Installation::isComplete());
+        $this->assertFileExists($this->keyFile());
+        $this->assertStringContainsString('APP_URL=http://first-visit.test', File::get($this->storagePath.'/.env'));
+    }
+
+    public function test_setup_is_refused_when_there_is_no_key_file_at_all(): void
+    {
+        $details = $this->setUpDetails();
+        File::delete($this->keyFile());
+
+        $this->from('/setup')->post('/setup', $details)->assertSessionHasErrors('setup_key');
+
+        $this->assertSame(0, User::query()->count());
+    }
+
+    public function test_a_wrong_key_shows_a_message_and_keeps_what_was_typed(): void
+    {
+        $this->from('/setup')->post('/setup', $this->setUpDetails(['setup_key' => 'wrong-key']));
+
+        $this->get('/setup')
+            ->assertSee('Open the file again and copy all of it.')
+            ->assertSee('value="Acme Studio"', false)
+            ->assertSee('value="wrong-key"', false);
+    }
+
+    public function test_a_key_pasted_with_spaces_around_it_is_accepted(): void
+    {
+        $details = $this->setUpDetails();
+        $details['setup_key'] = "  {$details['setup_key']}\n";
+
+        $this->post('/setup', $details)->assertRedirect('/admin');
+
+        $this->assertSame(1, User::query()->count());
+    }
+
+    public function test_finishing_setup_deletes_the_key_file(): void
+    {
+        $this->post('/setup', $this->setUpDetails())->assertRedirect('/admin');
+
+        $this->assertFileDoesNotExist($this->keyFile());
+    }
+
+    public function test_finishing_setup_replaces_the_first_visits_address_and_keeps_other_settings(): void
+    {
+        $this->post('https://example.test/setup', $this->setUpDetails());
+
+        $this->assertSame(
+            "APP_NAME=Acme\nAPP_URL=https://example.test\nLOG_LEVEL=error\n",
+            File::get($this->storagePath.'/.env'),
+        );
+    }
+
+    public function test_finishing_setup_on_plain_http_saves_the_http_address(): void
+    {
+        $this->post('http://example.test/setup', $this->setUpDetails());
+
+        $this->assertStringContainsString('APP_URL=http://example.test', File::get($this->storagePath.'/.env'));
+        $this->assertNotTrue(config('session.secure'));
+    }
+
+    public function test_finishing_setup_in_a_folder_saves_the_folder_in_the_address(): void
+    {
+        $this->withServerVariables(['SCRIPT_FILENAME' => public_path('index.php'), 'SCRIPT_NAME' => '/blog/index.php', 'PHP_SELF' => '/blog/index.php'])
+            ->post('https://example.test/blog/setup', $this->setUpDetails());
+
+        $this->assertStringContainsString('APP_URL=https://example.test/blog', File::get($this->storagePath.'/.env'));
+    }
+
+    public function test_finishing_setup_on_https_after_a_plain_http_first_visit_makes_the_login_cookies_https_only(): void
+    {
+        $response = $this->post('https://example.test/setup', $this->setUpDetails());
+
+        $this->assertTrue(config('session.secure'));
+
+        $rememberCookie = $response->getCookie(auth()->guard()->getRecallerName());
+        $this->assertTrue($rememberCookie->isSecure());
+    }
+
+    public function test_a_settings_file_that_cant_be_changed_does_not_stop_setup_finishing(): void
+    {
+        $details = $this->setUpDetails();
+        File::delete($this->storagePath.'/.env');
+
+        $this->post('https://example.test/setup', $details)->assertRedirect();
+
+        $this->assertSame(1, User::query()->count());
+        $this->assertFileExists($this->storagePath.'/app/installed');
+    }
+
+    public function test_on_plain_http_the_setup_screen_checks_for_https_and_can_warn(): void
+    {
+        $this->get('http://example.test/setup')
+            ->assertSee('id="https-warning"', false)
+            ->assertSee("doesn't have a working security certificate", false)
+            ->assertSee('"https:\/\/example.test"', false);
+    }
+
+    public function test_on_https_the_setup_screen_neither_checks_nor_warns(): void
+    {
+        $this->get('https://example.test/setup')
+            ->assertOk()
+            ->assertDontSee('https-warning')
+            ->assertDontSee('security certificate');
     }
 
     public function test_finishing_setup_creates_the_account_and_starting_content_and_logs_in(): void

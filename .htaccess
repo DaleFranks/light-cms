@@ -20,6 +20,6 @@ Options -Indexes
 </IfModule>
 
 # A second lock on the most sensitive files, in case the rules above are ignored.
-<FilesMatch "^(\.env.*|.*\.sqlite|composer\.(json|lock)|artisan)$">
+<FilesMatch "^(\.env.*|.*\.sqlite|composer\.(json|lock)|artisan|setup-key\.txt)$">
     Require all denied
 </FilesMatch>

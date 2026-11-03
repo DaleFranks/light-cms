@@ -28,8 +28,9 @@ If you're locked out, another admin can turn off your two-step login on the User
 
 ## Built-in protection
 
+- Setup can only be finished by someone who can read the `setup-key.txt` file in the site's folder, so a stranger who finds a newly uploaded site can't make themselves the admin.
 - Login allows 5 attempts a minute, and password reset requests 2 a minute.
-- On a site whose address starts with `https://`, every `http://` visit is sent to `https://`, and the login cookie is only ever sent over HTTPS. (This follows the address the site was first opened with, so open it with `https://` the first time.)
+- On a site whose address starts with `https://`, every `http://` visit is sent to `https://`, and the login cookie is only ever sent over HTTPS. (This follows the address setup was finished on. The setup screen moves to `https://` by itself when the site has a working certificate.)
 - Admin sessions end after 2 hours without activity, unless **Remember me** was ticked. Changing your password logs out your other sessions.
 - Browsers are told not to show the site inside other websites' frames.
 - Only images can be uploaded, and nothing in the uploads folder can run as a program.

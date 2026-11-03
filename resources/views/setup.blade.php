@@ -17,6 +17,7 @@
         .help { margin: 6px 0 0; font-size: 0.875rem; color: #64748b; }
         .error { margin: 6px 0 0; font-size: 0.875rem; font-weight: 500; color: #b91c1c; }
         .has-error input { border-color: #b91c1c; }
+        .warning { margin: 16px 0 0; padding: 12px 16px; border: 1px solid #fcd34d; border-radius: 6px; background: #fffbeb; color: #78350f; font-size: 0.875rem; }
         button { margin-top: 28px; padding: 12px 24px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
         button:hover { background: #1d4ed8; }
     </style>
@@ -26,14 +27,45 @@
         <h1>Set up your site</h1>
         <p class="intro">Light CMS is installed. Name your site and create the account you'll use to run it.</p>
 
+        @if ($httpsSiteAddress)
+            {{-- Shown unless the check below is running, so it still appears without JavaScript --}}
+            <p class="warning" id="https-warning">
+                <strong>This site doesn't have a working security certificate yet.</strong>
+                Without one, passwords are sent unprotected. Most hosts offer free certificates in their control panel, so it's best to turn that on, then reload this page. You can also continue without one.
+            </p>
+            <script>
+                (function () {
+                    var warning = document.getElementById('https-warning');
+                    var address = @json($httpsSiteAddress);
+                    var check = new AbortController();
+
+                    warning.hidden = true;
+                    setTimeout(function () { check.abort(); }, 5000);
+
+                    fetch(address + '/up', { mode: 'no-cors', cache: 'no-store', signal: check.signal })
+                        .then(function () { window.location.replace(address + '/setup'); })
+                        .catch(function () { warning.hidden = false; });
+                })();
+            </script>
+        @endif
+
         <form method="POST" action="{{ route('setup.store') }}">
             @csrf
+
+            <h2>Confirm this is your site</h2>
+            <div @class(['has-error' => $errors->has('setup_key')])>
+                <label for="setup_key">Setup key</label>
+                <input type="text" id="setup_key" name="setup_key" value="{{ old('setup_key') }}" required autofocus
+                    autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
+                <p class="help">Open the file <strong>{{ \App\SetupKey::FILE_NAME }}</strong> in the folder you uploaded the site to, using your host's file manager or FTP, and paste the key here. It's deleted when setup finishes.</p>
+                @error('setup_key') <p class="error">{{ $message }}</p> @enderror
+            </div>
 
             <h2>Your site</h2>
             <div @class(['has-error' => $errors->has('site_name')])>
                 <label for="site_name">Site name</label>
                 {{-- Told not to offer autofill: password managers otherwise guess it wants an email address --}}
-                <input type="text" id="site_name" name="site_name" value="{{ old('site_name') }}" required maxlength="100" autofocus
+                <input type="text" id="site_name" name="site_name" value="{{ old('site_name') }}" required maxlength="100"
                     autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
                 <p class="help">Shown in the header and browser tabs. You can change it later on the Theme screen.</p>
                 @error('site_name') <p class="error">{{ $message }}</p> @enderror

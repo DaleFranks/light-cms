@@ -21,6 +21,7 @@
 /public/hot
 /public/js/filament
 /public/storage
+/setup-key.txt
 /storage/*.key
 /storage/pail
 /vendor
