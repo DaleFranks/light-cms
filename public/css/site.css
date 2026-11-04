@@ -846,6 +846,16 @@ body.nav-collapsed .dropdown-arrow {
     max-width: 100%;
 }
 
+/* On phones and small tablets, text beside an image would be left in a sliver */
+@media (max-width: 768px) {
+    .prose .img-left,
+    .prose .img-right {
+        float: none;
+        max-width: 100%;
+        margin: 1.5rem auto;
+    }
+}
+
 /* Clearfix for floated images */
 .prose::after {
     content: "";
@@ -1947,12 +1957,6 @@ select:focus {
     overflow: hidden;
 }
 
-@media (min-width: 992px) {
-    .video-container {
-        width: 75%;
-    }
-}
-
 .video-container iframe {
     position: absolute;
     top: 0;
@@ -1970,12 +1974,14 @@ select:focus {
 .video-container.video-left {
     float: left;
     clear: left;
+    width: 40%;
     margin: 0.5rem 1.5rem 1.5rem 0;
 }
 
 .video-container.video-right {
     float: right;
     clear: right;
+    width: 40%;
     margin: 0.5rem 0 1.5rem 1.5rem;
 }
 
@@ -1985,11 +1991,11 @@ select:focus {
     margin-top: 1.5rem;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
     .video-container.video-left,
     .video-container.video-right {
         float: none;
-        width: 100% !important;
+        width: 100%;
         margin: 2.5rem auto;
     }
 }

@@ -32,7 +32,7 @@ Shortcodes are written in square brackets and are replaced with something when t
 Places an image from the [image library](images.md). After the file name, in any order:
 
 - a **width**: `400` (pixels), `50%`, or `400x300`
-- an **alignment**: `left` or `right` (text wraps around the image), or `center`
+- an **alignment**: `left` or `right` (text wraps around the image, except on phones and small tablets, where the image is centered on its own line), or `center`
 - a **description** for screen readers. Without one, the description saved in the image library is used.
 
 A full image address (`https://...`) works too. Ordinary Markdown images, `![Our team](team.jpg)`, also find their file in the library.
@@ -44,7 +44,7 @@ A full image address (`https://...`) works too. Ordinary Markdown images, `![Our
 [youtube:https://youtu.be/VIDEO_ID|640|left]
 ```
 
-Embeds a video. Optional: a width (`640` or `80%`) and an alignment (`left`, `center` or `right`; centered by default).
+Embeds a video. Optional: a width (`640` or `80%`) and an alignment (`left`, `center` or `right`; centered by default). A left or right video wraps like an image, and takes up 40% of the page's width if you don't set one. On phones and small tablets, it's centered on its own line at its set width, or the full width of the page if none is set, and shrinks if the screen is narrower than its set width.
 
 ### Forms
 
