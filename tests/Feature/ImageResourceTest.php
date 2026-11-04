@@ -209,4 +209,57 @@ class ImageResourceTest extends TestCase
         $this->assertNull($same->fresh()->replaced_at);
         $this->assertNull($missing->fresh()->replaced_at);
     }
+
+    /**
+     * A real image file over the 500 KB limit, with padding after the image data.
+     */
+    private function largeUpload(): UploadedFile
+    {
+        $file = UploadedFile::fake()->image('huge.jpg', 3000, 2000);
+        file_put_contents($file->getPathname(), str_repeat("\0", 600 * 1024), FILE_APPEND);
+
+        return $file;
+    }
+
+    public function test_an_image_is_large_above_500_kb_whatever_its_dimensions(): void
+    {
+        $this->assertFalse(Image::factory()->make(['width' => 5000, 'height' => 4000, 'size' => 500 * 1024])->isLarge());
+        $this->assertTrue(Image::factory()->make(['width' => 100, 'height' => 100, 'size' => 500 * 1024 + 1])->isLarge());
+    }
+
+    public function test_only_large_files_are_labelled_in_the_library(): void
+    {
+        Image::factory()->create(['filename' => 'small.jpg', 'size' => 1000]);
+
+        Livewire::test(ManageImages::class)->loadTable()->assertDontSee('Large file');
+
+        Image::factory()->create(['filename' => 'big.jpg', 'size' => 900 * 1024]);
+
+        Livewire::test(ManageImages::class)->loadTable()->assertSee('Large file');
+    }
+
+    public function test_uploading_a_large_file_gives_a_notice_and_keeps_it_as_uploaded(): void
+    {
+        Livewire::test(ManageImages::class)
+            ->callAction('upload', data: ['files' => [$this->largeUpload()]])
+            ->assertNotified('This image may load slowly');
+
+        $this->assertSame(3000, Image::query()->where('filename', 'huge.jpg')->value('width'));
+    }
+
+    public function test_uploading_an_ordinary_file_gives_no_notice_whatever_its_dimensions(): void
+    {
+        Livewire::test(ManageImages::class)
+            ->callAction('upload', data: ['files' => [UploadedFile::fake()->image('wide.jpg', 3000, 2000)]])
+            ->assertNotNotified('This image may load slowly');
+    }
+
+    public function test_replacing_with_a_large_image_gives_a_notice(): void
+    {
+        $image = $this->libraryImage();
+
+        Livewire::test(ManageImages::class)
+            ->callAction(TestAction::make('replace')->table($image), data: ['file' => $this->largeUpload()])
+            ->assertNotified('This image may load slowly');
+    }
 }

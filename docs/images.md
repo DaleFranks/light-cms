@@ -9,7 +9,9 @@ The image library holds every image used in the site's content.
 
 Names are tidied up (lowercase, no spaces). A name that's already taken gets a number added (`team-2.jpg`), so an upload never replaces an existing image.
 
-Images are stored exactly as uploaded; they aren't resized or compressed. For fast pages, save photos at a sensible size before uploading (around 1600 pixels wide is plenty for most uses).
+Images are stored exactly as uploaded; they aren't resized or compressed. For fast pages, resize photos before uploading. A page's text column is usually about 800 to 950 pixels wide, so around 1000 pixels wide is plenty for most images; a photo straight from a phone or camera is far larger than that.
+
+An image file over 500 KB shows **Large file** on the Images screen, and gets a notice after it's uploaded or replaced. It's only a reminder: the image is still saved as it is, and you can resize or compress it and use **Replace** at any time.
 
 ## Using an image
 

@@ -67,6 +67,8 @@ class ManageImages extends ManageRecords
                         ->title($images->count() === 1 ? 'Image uploaded' : $images->count().' images uploaded')
                         ->body('Saved as '.$images->pluck('filename')->implode(', ').'.')
                         ->send();
+
+                    ImageResource::noticeLargeImages($images);
                 }),
         ];
     }

@@ -19,6 +19,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
 use RuntimeException;
@@ -59,6 +60,7 @@ class ImageResource extends Resource
                         ->state(fn (Image $record): string => $record->versionedPath())
                         ->disk(Image::DISK)
                         ->checkFileExistence(false)
+                        ->alignCenter()
                         ->imageHeight(160)
                         ->extraImgAttributes(['style' => 'max-width: 100%; object-fit: contain;', 'loading' => 'lazy']),
                     TextColumn::make('filename')
@@ -74,6 +76,11 @@ class ImageResource extends Resource
                     TextColumn::make('details')
                         ->state(fn (Image $record): string => "{$record->width} × {$record->height} · ".Number::fileSize($record->size))
                         ->color('gray')
+                        ->size('sm'),
+                    TextColumn::make('large_file')
+                        ->state(fn (Image $record): ?string => $record->isLarge() ? 'Large file' : null)
+                        ->color('warning')
+                        ->weight('medium')
                         ->size('sm'),
                     TextColumn::make('alt_text')
                         ->color('gray')
@@ -147,7 +154,30 @@ class ImageResource extends Resource
                     ->title($record->filename.' replaced')
                     ->body("Now {$record->width} × {$record->height} · ".Number::fileSize($record->size))
                     ->send();
+
+                self::noticeLargeImages(collect([$record]));
             });
+    }
+
+    /**
+     * Mentions any images that may load slowly, so they can be resized and replaced.
+     *
+     * @param  Collection<int, Image>  $images
+     */
+    public static function noticeLargeImages(Collection $images): void
+    {
+        $largeImages = $images->filter->isLarge();
+
+        if ($largeImages->isEmpty()) {
+            return;
+        }
+
+        Notification::make()
+            ->warning()
+            ->title($largeImages->count() === 1 ? 'This image may load slowly' : 'These images may load slowly')
+            ->body($largeImages->map(fn (Image $image): string => $image->filename.' is '.Number::fileSize($image->size))->implode(', ').'. Images are kept as uploaded, so consider resizing or compressing and using Replace.')
+            ->persistent()
+            ->send();
     }
 
     private static function whereUsedText(Image $image): string

@@ -50,6 +50,11 @@ class Image extends Model
         'image/webp' => 'webp',
     ];
 
+    /**
+     * Above this, an image is pointed out as one that may load slowly.
+     */
+    private const LARGE_FILE_BYTES = 500 * 1024;
+
     protected static function booted(): void
     {
         static::deleting(function (Image $image): bool {
@@ -167,6 +172,15 @@ class Image extends Model
         $this->replaced_at = now();
 
         return $this->save();
+    }
+
+    /**
+     * Whether the file is big enough to slow a page down. It's only ever pointed out;
+     * images are kept exactly as they're uploaded.
+     */
+    public function isLarge(): bool
+    {
+        return $this->size > self::LARGE_FILE_BYTES;
     }
 
     public function fileExists(): bool
