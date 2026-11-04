@@ -6,8 +6,8 @@ Everything lives in the site's own folder: the content in a single SQLite databa
 
 - **Pages, blogs and posts** written in Markdown, with a menu built from the pages
 - **Cards, modules and sliders** to build up pages without writing HTML
-- **An image library**, embedded YouTube videos, and **forms** with stored submissions and email notifications
-- **A Theme screen** for the logo, colors, fonts, header, footer and an optional top bar, with no template code to edit
+- **An image library** where images can be replaced without touching the pages that use them, embedded YouTube videos, and **forms** with stored submissions and email notifications
+- **A Theme screen** for the logo, colors, a curated list of Google Fonts, headings, header, footer and an optional top bar, with no template code to edit
 - **Redirects** (added automatically when a page moves), an automatic **sitemap** and `robots.txt`
 - **Several admins**, optional **two-step login**, password reset by email, and HTTPS enforced on HTTPS sites
 - **One-click backups**, and the database updates itself after an upgrade

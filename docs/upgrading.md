@@ -13,6 +13,19 @@ The release zip doesn't contain anything that's yours, so uploading it never ove
 
 If you edited the `.htaccess` file in the site's folder (for example to [redirect www](redirects.md#redirecting-www-to-your-main-address-or-another-domain)), the release's `.htaccess` replaces it, so make the same edit again, or don't upload that one file.
 
+## What looks different after upgrading to 0.6.0
+
+Most new settings leave a site as it was until they're used, but a few things change by themselves:
+
+- **Italics** are now the font's real italics wherever it has them, rather than slanted upright letters.
+- **Bold** is no longer faked for a font with no bold of its own; it shows at its natural weight.
+- **Page text line height** is now 1.6, down from 1.625, and is set on the Theme screen.
+- **Left and right images and videos** go on their own line, centered, at 768 pixels wide and below.
+- **Videos with no width set**: centered ones now fill the text column on large screens rather than 75% of it, and left and right ones take 40% of it.
+- **Bullets** sit beside their words in centered and right-aligned cards and modules, and match the text on Primary color panels.
+
+If your **Custom CSS** sets these, check them after upgrading. In particular, `body { line-height: ... }` no longer reaches page text; use the Theme screen's **Line height** instead.
+
 ## The database update
 
 Some versions add something to the database, such as a new setting. Each of those changes is a file in `database/migrations/`; the site keeps a note of which ones it has applied. On the first visit after an upgrade, if there are new ones, the CMS:

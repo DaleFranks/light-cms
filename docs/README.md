@@ -10,7 +10,7 @@ How each screen in the admin (at `/admin`) works.
 **Content**
 
 - [Pages & Posts](pages-and-posts.md): pages, blogs, posts and the menu
-- [Images](images.md): the image library
+- [Images](images.md): the image library, and replacing an image
 - [Cards and Modules](cards-and-modules.md): reusable boxes and sections, and the footer
 - [Sliders](sliders.md): rotating images
 - [Forms](forms.md): contact forms, newsletter sign-ups and their submissions
@@ -18,10 +18,10 @@ How each screen in the admin (at `/admin`) works.
 
 **Settings**
 
-- [Theme](theme.md): logo, colors, fonts, header, top bar, footer and layout
+- [Theme](theme.md): logo, colors, fonts, headings, header, top bar, footer and layout
 - [Email](email.md): how the site sends email
 - [Users and security](users-and-security.md): admin accounts, your profile, two-step login and passwords
 - [Backup](backup.md): downloading a backup and restoring one
-- [Upgrading](upgrading.md): installing a new version, the automatic database update, and what to do if it can't run
+- [Upgrading](upgrading.md): installing a new version, what looks different after upgrading, the automatic database update, and what to do if it can't run
 
 Search engines are looked after automatically: every site has a sitemap at `/sitemap.xml` that lists everything published, and a `robots.txt` that points to it.
