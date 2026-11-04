@@ -2,6 +2,8 @@
 
 Both are pieces of content written once and placed in pages with a shortcode, so they can be reused and changed in one place.
 
+Use a **card** for a small box of text, which can sit in columns with other cards. Use a **module** for a whole section of a page, including a layout written in HTML; it always takes the full width of the page and can't sit in columns.
+
 ## Cards
 
 A card is a small box, such as a service, a price plan or a call to action. Cards are often shown side by side.
@@ -9,6 +11,7 @@ A card is a small box, such as a service, a price plan or a call to action. Card
 - **Name**: for finding it in the admin.
 - **Slug**: used in the shortcode: `[card:hosting]` for one card, or `[cards: design, development, seo]` for several in a row.
 - **Style**: plain, or a colored panel: **Dark**, **Light** or **Primary color**. The panel colors are set on the Theme screen's **Panel styles** tab.
+- **Text alignment**: **Left**, **Centered** or **Right**. Left unset, the card uses its style's alignment: **Dark** and **Primary color** cards are centered, **Light** and plain cards are left-aligned.
 - **Featured**: highlights the card with a colored border and a "Featured" ribbon.
 - **Content**: Markdown. Images, videos and forms can be used inside a card.
 

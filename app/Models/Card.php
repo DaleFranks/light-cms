@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\BoxStyle;
 use App\Markdown;
+use App\TextAlignment;
 use Database\Factories\CardFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
     'body',
     'style',
     'featured',
+    'text_alignment',
 ])]
 class Card extends Model
 {
@@ -35,6 +37,7 @@ class Card extends Model
         return [
             'style' => BoxStyle::class,
             'featured' => 'boolean',
+            'text_alignment' => TextAlignment::class,
         ];
     }
 
@@ -48,6 +51,7 @@ class Card extends Model
             'card',
             $this->featured ? 'featured-card' : null,
             $this->style ? 'theme-'.$this->style->value : null,
+            $this->text_alignment ? 'card-align-'.$this->text_alignment->value : null,
         ])->filter()->implode(' ');
 
         $body = Markdown::toHtml((string) $this->body);

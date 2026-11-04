@@ -89,7 +89,7 @@ class ThemeSettings extends Page
     private function fillForm(Theme $theme): void
     {
         $alwaysShown = collect(ThemeOptions::all())
-            ->filter(fn (array $option): bool => $option['type'] === 'number')
+            ->filter(fn (array $option): bool => isset($option['always_shown']))
             ->mapWithKeys(fn (array $option, string $key): array => [$key => $theme->option($key)]);
 
         $toggles = collect(ThemeOptions::all())
@@ -209,6 +209,7 @@ class ThemeSettings extends Page
                                         ->required(),
                                     ...self::optionFields('Fonts', 'Fonts'),
                                 ]),
+                            self::optionsSection('Fonts', 'Text'),
                             self::optionsSection('Fonts', 'Text sizes'),
                         ]),
                         Tab::make('Cards')->schema([
@@ -333,17 +334,27 @@ class ThemeSettings extends Page
     }
 
     /**
-     * The detailed settings to keep. A number box always shows a number, so one
-     * left at its automatic value hasn't been chosen and isn't kept.
+     * The detailed settings to keep. One that always shows a value and is left at
+     * its default hasn't been chosen, so it isn't kept.
      *
      * @param  array<string, mixed>  $options
      * @return array<string, mixed>|null
      */
     private static function chosenOptions(array $options): ?array
     {
-        $chosen = array_filter($options, fn (mixed $value, string $key): bool => filled($value) && ! (
-            (ThemeOptions::all()[$key]['type'] ?? null) === 'number' && (float) $value === (float) ThemeOptions::all()[$key]['default']
-        ), ARRAY_FILTER_USE_BOTH);
+        $chosen = array_filter($options, function (mixed $value, string $key): bool {
+            $option = ThemeOptions::all()[$key] ?? [];
+
+            if (blank($value)) {
+                return false;
+            }
+
+            if (! isset($option['always_shown'])) {
+                return true;
+            }
+
+            return is_numeric($value) ? (float) $value !== (float) $option['default'] : $value !== $option['default'];
+        }, ARRAY_FILTER_USE_BOTH);
 
         return $chosen ?: null;
     }
@@ -391,7 +402,7 @@ class ThemeSettings extends Page
             'seconds' => TextInput::make($name)->numeric()->minValue($option['min'])->maxValue($option['max'])->suffix('seconds')->placeholder($automatic),
             'font' => self::fontSelect($name, ThemeFonts::forHeadings(), $key)->placeholder($automatic),
             'code_font' => self::fontSelect($name, ThemeFonts::forCode(), $key)->placeholder($automatic),
-            'choice' => Select::make($name)->options($option['choices'])->placeholder($automatic),
+            'choice' => Select::make($name)->options($option['choices'])->placeholder(isset($option['always_shown']) ? null : $automatic)->selectablePlaceholder(! isset($option['always_shown'])),
             'toggle' => Toggle::make($name)->inline(false),
             'image' => FileUpload::make($name)->image()->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
                 ->maxSize(4096)->disk('uploads')->directory('theme'),

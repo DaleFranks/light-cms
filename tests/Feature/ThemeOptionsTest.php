@@ -194,6 +194,44 @@ class ThemeOptionsTest extends TestCase
         }
     }
 
+    public function test_text_alignment_starts_at_left_and_can_be_justified(): void
+    {
+        $this->assertSame('inherit', Theme::current()->cssVariables()['--text-align-content']);
+
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->assertSchemaStateSet(['options.text_alignment' => 'left'])
+            ->fillForm(['options.text_alignment' => 'justified'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('justify', Theme::current()->cssVariables()['--text-align-content']);
+        $this->get('/')->assertSee('--text-align-content: justify', false);
+    }
+
+    public function test_only_left_or_justified_can_be_chosen_for_text_alignment(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['options.text_alignment' => 'center'])
+            ->call('save')
+            ->assertHasFormErrors(['options.text_alignment']);
+    }
+
+    public function test_text_alignment_left_at_left_isnt_saved_as_a_choice(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['site_name' => 'Acme'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertArrayNotHasKey('text_alignment', Theme::current()->options ?? []);
+    }
+
     public function test_every_setting_has_a_working_automatic_value(): void
     {
         $theme = Theme::current();

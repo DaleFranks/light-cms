@@ -667,6 +667,17 @@ body.nav-collapsed .dropdown-arrow {
     margin-top: 1.5rem;
 }
 
+/* The Theme's text alignment, for the page's own text. Headings, tables, cards and
+   modules keep their own alignment, and narrow screens are too narrow to justify well. */
+@media (min-width: 769px) {
+    .prose > p,
+    .prose > ul,
+    .prose > ol,
+    .prose > blockquote {
+        text-align: var(--text-align-content, inherit);
+    }
+}
+
 /* Headings */
 .prose h1,
 .prose h2,
@@ -1377,6 +1388,35 @@ select:focus {
 .card.theme-light p:last-child,
 .card.theme-primary p:last-child {
     margin-bottom: 0;
+}
+
+/* A card's own text alignment, over the one its style starts with */
+.card.card-align-left { text-align: left; }
+.card.card-align-center { text-align: center; }
+.card.card-align-right { text-align: right; }
+
+/* In centered or right-aligned text, a list's bullets stay beside their words
+   rather than back at the box's left edge */
+.module.theme-dark :is(ul, ol),
+.module.theme-primary :is(ul, ol),
+.cta-module :is(ul, ol),
+.card.theme-dark :is(ul, ol),
+.card.theme-primary :is(ul, ol),
+.card.card-align-center :is(ul, ol),
+.card.card-align-right :is(ul, ol) {
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+/* The primary color would hide bullets on a panel of the same color */
+.module.theme-primary li::marker,
+.card.theme-primary li::marker {
+    color: currentColor;
+}
+
+.card.card-align-left :is(ul, ol) {
+    list-style-position: outside;
+    padding-left: 26px;
 }
 
 /* Theme modifier states (like success message container) */

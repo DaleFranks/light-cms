@@ -70,4 +70,24 @@ class CardResourceTest extends TestCase
 
         $this->assertSame('New text.', $card->refresh()->body);
     }
+
+    public function test_a_cards_text_alignment_can_be_set_and_cleared(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $card = Card::factory()->create(['style' => 'dark']);
+
+        Livewire::test(EditCard::class, ['record' => $card->getRouteKey()])
+            ->fillForm(['text_alignment' => 'right'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('right', $card->fresh()->text_alignment->value);
+
+        Livewire::test(EditCard::class, ['record' => $card->getRouteKey()])
+            ->fillForm(['text_alignment' => null])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($card->fresh()->text_alignment);
+    }
 }

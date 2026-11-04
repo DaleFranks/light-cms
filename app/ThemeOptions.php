@@ -17,10 +17,12 @@ use Closure;
  * - tab and section: where it appears on the Theme screen
  * - label, and optionally help
  * - type: color (hex), rgba (a color that may be see-through), px, seconds,
- *   number (with step; always shows a number rather than being empty), font, code_font, image, toggle or choice (with choices)
+ *   number (with step), font, code_font, image, toggle or choice (with choices)
  * - default: its automatic value, or a closure working it out from the theme
  * - var: the CSS variable it sets, or css: a closure returning the variables
  *   for settings that set more than one, or combine with another (gradients)
+ * - always_shown: shows the value in use rather than being empty and automatic;
+ *   left at its default, it isn't kept as a choice
  * - alpha: for colors shown see-through on the site, such as the header
  * - footer_style: for footer colors, the footer style they belong to
  */
@@ -156,12 +158,18 @@ class ThemeOptions
                 'tab' => 'Fonts', 'section' => 'Fonts', 'label' => 'Code', 'type' => 'code_font',
                 'default' => 'Fira Code', 'var' => '--font-family-code',
             ],
-            'font_size_base' => self::px('Fonts', 'Text sizes', 'Body text', 17, '--font-size-base', 12, 28),
             'line_height' => [
-                'tab' => 'Fonts', 'section' => 'Text sizes', 'label' => 'Line height', 'type' => 'number',
+                'tab' => 'Fonts', 'section' => 'Text', 'label' => 'Line height', 'type' => 'number', 'always_shown' => true,
                 'default' => 1.6, 'var' => '--line-height-content', 'min' => 1.2, 'max' => 2.5, 'step' => 0.1,
                 'help' => 'The space between lines of text in pages and posts, as a multiple of the text size.',
             ],
+            'text_alignment' => [
+                'tab' => 'Fonts', 'section' => 'Text', 'label' => 'Text alignment', 'type' => 'choice', 'always_shown' => true,
+                'choices' => ['left' => 'Left', 'justified' => 'Justified'], 'default' => 'left',
+                'help' => 'For paragraphs, lists and quotes in pages and posts. Justified text goes back to left on phones and small tablets. Headings are always left-aligned.',
+                'css' => fn (string $value): array => ['--text-align-content' => $value === 'justified' ? 'justify' : 'inherit'],
+            ],
+            'font_size_base' => self::px('Fonts', 'Text sizes', 'Body text', 17, '--font-size-base', 12, 28),
             'font_size_h1' => self::px('Fonts', 'Text sizes', 'Heading 1', 36, '--font-size-h1', 12, 96),
             'font_size_h2' => self::px('Fonts', 'Text sizes', 'Heading 2', 26, '--font-size-h2', 12, 96),
             'font_size_h3' => self::px('Fonts', 'Text sizes', 'Heading 3', 20, '--font-size-h3', 12, 96),

@@ -80,4 +80,18 @@ class CardShortcodeTest extends TestCase
             ->assertSee('Card text.')
             ->assertSee('Module text.');
     }
+
+    public function test_a_cards_text_alignment_is_added_to_its_classes(): void
+    {
+        $card = Card::factory()->create(['style' => 'dark', 'text_alignment' => 'left']);
+
+        $this->assertStringContainsString('class="card theme-dark card-align-left"', $card->html());
+    }
+
+    public function test_a_card_with_no_text_alignment_uses_its_styles(): void
+    {
+        $card = Card::factory()->create(['style' => 'dark']);
+
+        $this->assertStringContainsString('class="card theme-dark"', $card->html());
+    }
 }

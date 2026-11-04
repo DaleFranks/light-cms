@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Cards\Schemas;
 
 use App\BoxStyle;
+use App\TextAlignment;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
@@ -50,6 +51,11 @@ class CardForm
                             ->options(BoxStyle::class)
                             ->placeholder('None')
                             ->helperText('Shows the card as a colored panel.'),
+                        Select::make('text_alignment')
+                            ->label('Text alignment')
+                            ->options(TextAlignment::class)
+                            ->placeholder('Style\'s default')
+                            ->helperText('Dark and Primary color cards are centered by default. Light and plain cards are left-aligned.'),
                         Toggle::make('featured')
                             ->helperText('Highlights the card with a colored border and a "Featured" ribbon.'),
                         MarkdownEditor::make('body')

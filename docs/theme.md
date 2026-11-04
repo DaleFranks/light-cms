@@ -31,6 +31,7 @@ If the settings have changed since you opened the screen, in another browser tab
 **Fonts**
 - The body and heading fonts, plus fonts for quotes, large display headings and code, chosen from a list of Google Fonts grouped by type. Type in a list to search it. A sample of the chosen font appears beneath each list. Display and handwriting fonts aren't offered for body text. Fonts load from Google; a site doesn't keep font files of its own.
 - Text sizes for body text and each heading level.
+- **Text alignment**: **Left** or **Justified**, for paragraphs, lists and quotes in pages and posts. Justified text goes back to left on phones and small tablets. Headings are always left-aligned, and tables, cards and modules aren't affected.
 - **Line height**: the space between lines of text in pages and posts, as a multiple of the text size. It starts at 1.6, and clearing the box puts 1.6 back. Anything inside a page's content follows it unless it has spacing of its own, such as headings. The site's header, menu and footer don't.
 
 **Cards**: card title and text colors and sizes.
