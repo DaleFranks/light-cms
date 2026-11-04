@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PDO;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -72,17 +73,90 @@ class BackupTest extends TestCase
     public function test_an_admin_downloads_the_backup_from_the_backup_screen(): void
     {
         Storage::fake(Image::DISK);
+        Storage::disk(Image::DISK)->put('images/team.jpg', 'photo');
+        $this->freezeTime();
         $this->actingAs(User::factory()->create());
 
         $this->get('/admin/backup')
             ->assertOk()
             ->assertSee('Download backup');
 
-        Livewire::test(BackupPage::class)
+        // The zip must never travel through the button's own response, which is held
+        // in memory: that's what ran out of memory on sites with many images.
+        $button = Livewire::test(BackupPage::class)
             ->callAction('download')
-            ->assertFileDownloaded();
+            ->assertNoFileDownloaded();
 
+        $downloadAddress = $button->effects['redirect'];
+        $this->zipPath = Backup::folder().'/'.basename($downloadAddress);
+        $this->assertFileExists($this->zipPath);
         $this->assertSame([], glob(storage_path('app/backups/*.sqlite')));
+
+        $download = $this->get($downloadAddress)->assertDownload(Backup::filename());
+
+        $this->assertInstanceOf(BinaryFileResponse::class, $download->baseResponse);
+
+        ob_start();
+        $download->baseResponse->sendContent();
+        $sentZip = (string) ob_get_clean();
+
+        $this->assertStringStartsWith('PK', $sentZip);
+        $this->assertFileDoesNotExist($this->zipPath);
+    }
+
+    public function test_visitors_cant_download_a_backup(): void
+    {
+        Storage::fake(Image::DISK);
+        $this->zipPath = Backup::create();
+
+        $this->get(route('filament.admin.backup.download', ['file' => basename($this->zipPath)]))
+            ->assertRedirect('/admin/login');
+
+        $this->assertFileExists($this->zipPath);
+    }
+
+    public function test_only_backup_zips_that_exist_can_be_downloaded(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        File::ensureDirectoryExists(Backup::folder());
+        $otherFile = Backup::folder().'/before-update-2026-11-01-000000.sqlite';
+        File::put($otherFile, 'database');
+
+        try {
+            $this->get('/admin/backup/download/'.basename($otherFile))->assertNotFound();
+            $this->get('/admin/backup/download/backup-'.str_repeat('a', 32).'.zip')->assertNotFound();
+            $this->assertFileExists($otherFile);
+        } finally {
+            File::delete($otherFile);
+        }
+    }
+
+    public function test_making_a_backup_clears_out_zips_that_were_never_downloaded(): void
+    {
+        Storage::fake(Image::DISK);
+        File::ensureDirectoryExists(Backup::folder());
+
+        $abandonedZip = Backup::folder().'/backup-example.com-2026-11-01-1530.zip';
+        $recentZip = Backup::folder().'/backup-'.str_repeat('b', 32).'.zip';
+        $databaseCopy = Backup::folder().'/before-update-2026-11-01-000000.sqlite';
+
+        foreach ([$abandonedZip, $recentZip, $databaseCopy] as $path) {
+            File::put($path, 'old');
+        }
+
+        touch($abandonedZip, time() - 7200);
+        touch($databaseCopy, time() - 7200);
+
+        try {
+            $this->zipPath = Backup::create();
+
+            $this->assertFileDoesNotExist($abandonedZip);
+            $this->assertFileExists($recentZip);
+            $this->assertFileExists($databaseCopy);
+        } finally {
+            File::delete([$abandonedZip, $recentZip, $databaseCopy]);
+        }
     }
 
     public function test_visitors_cant_reach_the_backup_screen(): void

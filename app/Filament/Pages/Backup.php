@@ -14,7 +14,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Number;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 /**
@@ -51,7 +50,7 @@ class Backup extends Page
             ->icon(Heroicon::OutlinedArrowDownTray)
             ->disabled(! SiteBackup::isAvailable())
             ->tooltip(SiteBackup::isAvailable() ? null : 'This server can\'t make zip files. Ask your host to turn on PHP\'s zip extension.')
-            ->action(function (): ?BinaryFileResponse {
+            ->action(function (): void {
                 try {
                     $path = SiteBackup::create();
                 } catch (Throwable $exception) {
@@ -63,10 +62,10 @@ class Backup extends Page
                         ->danger()
                         ->send();
 
-                    return null;
+                    return;
                 }
 
-                return response()->download($path)->deleteFileAfterSend();
+                $this->redirect(route('filament.admin.backup.download', ['file' => basename($path)]));
             });
     }
 }

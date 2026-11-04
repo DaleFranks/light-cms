@@ -14,6 +14,8 @@ The Backup screen downloads everything that makes the site its own as one zip fi
 
 Keep backups private: they contain the admin accounts and the key to the saved passwords.
 
+On a site with many images the zip can take a little while to make; the download starts when it's ready.
+
 The Backup button needs PHP's `zip` extension. If the server doesn't have it, the button is greyed out; ask your host to turn it on.
 
 ## Restoring a backup

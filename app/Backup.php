@@ -21,11 +21,30 @@ use ZipArchive;
 class Backup
 {
     /**
+     * What the zips waiting to be downloaded are called in the backups folder.
+     * The random part means one can't be guessed or overwritten by another.
+     */
+    public const ZIP_NAME_PATTERN = 'backup-[A-Za-z0-9]{32}\.zip';
+
+    /**
+     * How long a zip that was never downloaded is kept.
+     */
+    private const ABANDONED_AFTER_SECONDS = 3600;
+
+    /**
      * Whether this server can make zip files.
      */
     public static function isAvailable(): bool
     {
         return class_exists(ZipArchive::class);
+    }
+
+    /**
+     * The folder the zips are made in.
+     */
+    public static function folder(): string
+    {
+        return storage_path('app/backups');
     }
 
     /**
@@ -37,10 +56,11 @@ class Backup
             throw new RuntimeException('This server can\'t make zip files (PHP\'s zip extension is missing).');
         }
 
-        $folder = storage_path('app/backups');
+        $folder = self::folder();
         File::ensureDirectoryExists($folder);
+        self::deleteAbandonedZips();
 
-        $zipPath = $folder.'/'.self::filename();
+        $zipPath = $folder.'/backup-'.Str::random(32).'.zip';
         $snapshotPath = $folder.'/'.Str::random(16).'.sqlite';
 
         try {
@@ -70,7 +90,10 @@ class Backup
             }
 
             $zip->addFromString('RESTORING.txt', str_replace('%VERSION%', Version::label(), self::instructions()));
-            $zip->close();
+
+            if (! $zip->close()) {
+                throw new RuntimeException('The backup file couldn\'t be saved. The server may be out of disk space.');
+            }
         } finally {
             File::delete($snapshotPath);
         }
@@ -86,6 +109,19 @@ class Backup
         $site = Str::slug(parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'site', '.');
 
         return 'backup-'.$site.'-'.now()->format('Y-m-d-Hi').'.zip';
+    }
+
+    /**
+     * A zip stays behind if its download never finishes. Each one holds the admin
+     * accounts and takes up as much room as the uploads, so none should linger.
+     */
+    private static function deleteAbandonedZips(): void
+    {
+        foreach (File::glob(self::folder().'/backup-*.zip') as $zipPath) {
+            if (File::lastModified($zipPath) < time() - self::ABANDONED_AFTER_SECONDS) {
+                File::delete($zipPath);
+            }
+        }
     }
 
     private static function instructions(): string
