@@ -31,6 +31,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\View\View;
@@ -82,16 +83,22 @@ class ThemeSettings extends Page
 
     /**
      * Toggles have no "empty", so they're shown switched to whatever they're using.
+     * Number boxes always show a number, because a browser's arrows on an empty box
+     * jump to the lowest value allowed rather than starting from the one in use.
      */
     private function fillForm(Theme $theme): void
     {
+        $alwaysShown = collect(ThemeOptions::all())
+            ->filter(fn (array $option): bool => $option['type'] === 'number')
+            ->mapWithKeys(fn (array $option, string $key): array => [$key => $theme->option($key)]);
+
         $toggles = collect(ThemeOptions::all())
             ->filter(fn (array $option): bool => $option['type'] === 'toggle')
             ->mapWithKeys(fn (array $option, string $key): array => [$key => (bool) $theme->option($key)]);
 
         $this->form->fill([
             ...$theme->attributesToArray(),
-            'options' => [...($theme->options ?? []), ...$toggles],
+            'options' => [...($theme->options ?? []), ...$alwaysShown, ...$toggles],
         ]);
     }
 
@@ -275,6 +282,9 @@ class ThemeSettings extends Page
     {
         return $schema->components([
             Form::make([EmbeddedSchema::make('form')])
+                // The server checks every setting and shows why. Left to the browser, a line height
+                // between the arrows' steps would quietly stop the form saving.
+                ->extraAttributes(['novalidate' => true])
                 ->id('form')
                 ->livewireSubmitHandler('save')
                 ->footer([
@@ -291,7 +301,7 @@ class ThemeSettings extends Page
     protected function saveSettings(): void
     {
         $state = $this->form->getState();
-        $state['options'] = array_filter($state['options'] ?? [], 'filled') ?: null;
+        $state['options'] = self::chosenOptions($state['options'] ?? []);
 
         Theme::current()->update($state);
         $this->rememberLoadedSettings();
@@ -320,6 +330,22 @@ class ThemeSettings extends Page
                     ->title('Theme reset to defaults')
                     ->send();
             });
+    }
+
+    /**
+     * The detailed settings to keep. A number box always shows a number, so one
+     * left at its automatic value hasn't been chosen and isn't kept.
+     *
+     * @param  array<string, mixed>  $options
+     * @return array<string, mixed>|null
+     */
+    private static function chosenOptions(array $options): ?array
+    {
+        $chosen = array_filter($options, fn (mixed $value, string $key): bool => filled($value) && ! (
+            (ThemeOptions::all()[$key]['type'] ?? null) === 'number' && (float) $value === (float) ThemeOptions::all()[$key]['default']
+        ), ARRAY_FILTER_USE_BOTH);
+
+        return $chosen ?: null;
     }
 
     private static function optionsSection(string $tab, string $section): Section
@@ -355,6 +381,13 @@ class ThemeSettings extends Page
             'color' => ColorPicker::make($name)->hex()->regex(self::HEX_PATTERN)->placeholder($automatic),
             'rgba' => ColorPicker::make($name)->rgba()->regex(self::RGBA_PATTERN)->placeholder($automatic),
             'px' => TextInput::make($name)->numeric()->minValue($option['min'])->maxValue($option['max'])->suffix('px')->placeholder($automatic),
+            'number' => TextInput::make($name)->numeric()->minValue($option['min'])->maxValue($option['max'])->step($option['step'])
+                ->live(onBlur: true)
+                ->afterStateUpdated(function (mixed $state, Set $set) use ($name, $option): void {
+                    if (blank($state)) {
+                        $set($name, $option['default']);
+                    }
+                }),
             'seconds' => TextInput::make($name)->numeric()->minValue($option['min'])->maxValue($option['max'])->suffix('seconds')->placeholder($automatic),
             'font' => self::fontSelect($name, ThemeFonts::forHeadings(), $key)->placeholder($automatic),
             'code_font' => self::fontSelect($name, ThemeFonts::forCode(), $key)->placeholder($automatic),

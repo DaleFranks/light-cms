@@ -120,6 +120,80 @@ class ThemeOptionsTest extends TestCase
         $this->get('/')->assertSee('--color-link: #ff00ff;', false);
     }
 
+    public function test_line_height_starts_at_1_6_and_can_be_changed(): void
+    {
+        $this->assertSame('1.6', Theme::current()->cssVariables()['--line-height-content']);
+
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['options.line_height' => 1.7])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('1.7', Theme::current()->cssVariables()['--line-height-content']);
+        $this->get('/')->assertSee('--line-height-content: 1.7', false);
+    }
+
+    public function test_the_line_height_box_always_shows_a_number(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->assertSchemaStateSet(['options.line_height' => 1.6])
+            ->set('data.options.line_height', '')
+            ->assertSchemaStateSet(['options.line_height' => 1.6]);
+    }
+
+    public function test_a_line_height_left_at_the_automatic_value_isnt_saved_as_a_choice(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['site_name' => 'Acme'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertArrayNotHasKey('line_height', Theme::current()->options ?? []);
+    }
+
+    public function test_reset_puts_line_height_back_to_1_6(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Theme::current()->update(['options' => ['line_height' => 2]]);
+
+        Livewire::test(ThemeSettings::class)
+            ->assertSchemaStateSet(['options.line_height' => 2])
+            ->callAction('resetToDefaults')
+            ->assertSchemaStateSet(['options.line_height' => 1.6]);
+
+        $this->assertSame('1.6', Theme::current()->cssVariables()['--line-height-content']);
+    }
+
+    public function test_a_line_height_between_the_arrow_steps_can_be_saved(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['options.line_height' => 1.65])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('1.65', Theme::current()->cssVariables()['--line-height-content']);
+    }
+
+    public function test_line_heights_outside_the_range_are_refused(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        foreach ([1.1, 2.6, '1.5; } body { display: none'] as $lineHeight) {
+            Livewire::test(ThemeSettings::class)
+                ->fillForm(['options.line_height' => $lineHeight])
+                ->call('save')
+                ->assertHasFormErrors(['options.line_height']);
+        }
+    }
+
     public function test_every_setting_has_a_working_automatic_value(): void
     {
         $theme = Theme::current();

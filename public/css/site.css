@@ -659,6 +659,7 @@ body.nav-collapsed .dropdown-arrow {
    ------------------------------------------------------------- */
 .prose {
     font-size: var(--font-size-base, 1.0625rem);
+    line-height: var(--line-height-content, 1.6);
     color: var(--color-text-main);
 }
 

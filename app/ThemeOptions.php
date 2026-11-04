@@ -17,7 +17,7 @@ use Closure;
  * - tab and section: where it appears on the Theme screen
  * - label, and optionally help
  * - type: color (hex), rgba (a color that may be see-through), px, seconds,
- *   font, code_font, image, toggle or choice (with choices)
+ *   number (with step; always shows a number rather than being empty), font, code_font, image, toggle or choice (with choices)
  * - default: its automatic value, or a closure working it out from the theme
  * - var: the CSS variable it sets, or css: a closure returning the variables
  *   for settings that set more than one, or combine with another (gradients)
@@ -157,6 +157,11 @@ class ThemeOptions
                 'default' => 'Fira Code', 'var' => '--font-family-code',
             ],
             'font_size_base' => self::px('Fonts', 'Text sizes', 'Body text', 17, '--font-size-base', 12, 28),
+            'line_height' => [
+                'tab' => 'Fonts', 'section' => 'Text sizes', 'label' => 'Line height', 'type' => 'number',
+                'default' => 1.6, 'var' => '--line-height-content', 'min' => 1.2, 'max' => 2.5, 'step' => 0.1,
+                'help' => 'The space between lines of text in pages and posts, as a multiple of the text size.',
+            ],
             'font_size_h1' => self::px('Fonts', 'Text sizes', 'Heading 1', 36, '--font-size-h1', 12, 96),
             'font_size_h2' => self::px('Fonts', 'Text sizes', 'Heading 2', 26, '--font-size-h2', 12, 96),
             'font_size_h3' => self::px('Fonts', 'Text sizes', 'Heading 3', 20, '--font-size-h3', 12, 96),
