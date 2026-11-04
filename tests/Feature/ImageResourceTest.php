@@ -41,6 +41,15 @@ class ImageResourceTest extends TestCase
         Livewire::test(ManageImages::class)->assertCanSeeTableRecords($images);
     }
 
+    public function test_previews_stay_inside_their_cards(): void
+    {
+        Image::factory()->create(['filename' => 'very-wide.jpg', 'width' => 3000, 'height' => 500]);
+
+        Livewire::test(ManageImages::class)
+            ->loadTable()
+            ->assertSeeHtml('style="max-width: 100%; object-fit: contain; height: 160px;"');
+    }
+
     public function test_several_images_can_be_uploaded_at_once(): void
     {
         Image::factory()->create(['filename' => 'team.jpg']);

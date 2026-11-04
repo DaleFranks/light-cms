@@ -55,7 +55,7 @@ class ImageResource extends Resource
                         ->state(fn (Image $record): string => $record->path())
                         ->disk(Image::DISK)
                         ->imageHeight(160)
-                        ->extraImgAttributes(['class' => 'object-contain', 'loading' => 'lazy']),
+                        ->extraImgAttributes(['style' => 'max-width: 100%; object-fit: contain;', 'loading' => 'lazy']),
                     TextColumn::make('filename')
                         ->weight('medium')
                         ->searchable()
