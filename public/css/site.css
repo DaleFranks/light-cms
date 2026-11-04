@@ -409,12 +409,12 @@ body.top-bar-scrolls-away .site-header.scrolled {
 
 .page-title {
     font-family: var(--font-family-headers);
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: var(--page-title-size, 2.5rem);
+    font-weight: var(--font-weight-heading, 700);
     letter-spacing: -0.03em;
-    color: var(--color-secondary);
+    color: var(--color-heading, var(--color-secondary));
     margin-bottom: 32px;
-    line-height: 1.15;
+    line-height: var(--page-title-line-height, 1.15);
 }
 
 /* -------------------------------------------------------------
@@ -678,7 +678,7 @@ body.nav-collapsed .dropdown-arrow {
     }
 }
 
-/* Headings */
+/* Headings: the Theme's Headings settings, then each level's own */
 .prose h1,
 .prose h2,
 .prose h3,
@@ -686,11 +686,17 @@ body.nav-collapsed .dropdown-arrow {
 .prose h5,
 .prose h6 {
     font-family: var(--font-family-headers);
-    color: var(--color-secondary);
-    font-weight: 700;
-    line-height: 1.25;
+    color: var(--color-heading, var(--color-secondary));
+    font-weight: var(--font-weight-heading, 700);
+    line-height: var(--line-height-heading, 1.25);
     letter-spacing: -0.02em;
 }
+
+.prose h2 { font-family: var(--font-family-h2, var(--font-family-headers)); font-weight: var(--font-weight-h2, var(--font-weight-heading, 700)); color: var(--color-h2, var(--color-heading, var(--color-secondary))); }
+.prose h3 { font-family: var(--font-family-h3, var(--font-family-headers)); font-weight: var(--font-weight-h3, var(--font-weight-heading, 700)); color: var(--color-h3, var(--color-heading, var(--color-secondary))); }
+.prose h4 { font-family: var(--font-family-h4, var(--font-family-headers)); font-weight: var(--font-weight-h4, var(--font-weight-heading, 700)); color: var(--color-h4, var(--color-heading, var(--color-secondary))); }
+.prose h5 { font-family: var(--font-family-h5, var(--font-family-headers)); font-weight: var(--font-weight-h5, var(--font-weight-heading, 700)); color: var(--color-h5, var(--color-heading, var(--color-secondary))); }
+.prose h6 { font-family: var(--font-family-h6, var(--font-family-headers)); font-weight: var(--font-weight-h6, var(--font-weight-heading, 700)); color: var(--color-h6, var(--color-heading, var(--color-secondary))); }
 
 .prose h1 { font-size: var(--font-size-h1, 2.25rem); margin-top: 2.5rem; }
 .prose h2 { font-size: var(--font-size-h2, 1.625rem); margin-top: 2.25rem; }
@@ -1419,6 +1425,25 @@ select:focus {
     padding-left: 26px;
 }
 
+/* Cards and panels keep their own heading look, whatever the Theme's heading settings are */
+.card :is(h1, h2, h3, h4, h5, h6),
+.module.theme-dark :is(h1, h2, h3, h4, h5, h6),
+.module.theme-light :is(h1, h2, h3, h4, h5, h6),
+.module.theme-primary :is(h1, h2, h3, h4, h5, h6),
+.cta-module :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--font-family-headers);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.card :is(h5, h6),
+.module.theme-dark :is(h5, h6),
+.module.theme-light :is(h5, h6),
+.module.theme-primary :is(h5, h6),
+.cta-module :is(h5, h6) {
+    color: var(--color-secondary);
+}
+
 /* Theme modifier states (like success message container) */
 .module.theme-light.module-success,
 .newsletter-module.newsletter-success {
@@ -1917,7 +1942,7 @@ select:focus {
 .footer-nav-flat a {
     color: var(--footer-link, var(--footer-dark-link));
     text-decoration: none;
-    font-size: 0.9375rem;
+    font-size: var(--footer-link-size, 0.9375rem);
     font-weight: 500;
     transition: color var(--transition-fast);
 }
@@ -1938,7 +1963,7 @@ select:focus {
     margin-top: 0;
     margin-bottom: 16px;
     font-family: var(--font-family-headers);
-    font-size: 1rem;
+    font-size: var(--footer-column-heading-size, 1rem);
 }
 
 .footer-nav-col h4 a {
@@ -1963,7 +1988,7 @@ select:focus {
 .footer-nav-col ul a {
     color: var(--footer-link, var(--footer-dark-link));
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: var(--footer-column-link-size, 0.875rem);
     transition: color var(--transition-fast);
 }
 

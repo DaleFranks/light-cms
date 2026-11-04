@@ -232,6 +232,120 @@ class ThemeOptionsTest extends TestCase
         $this->assertArrayNotHasKey('text_alignment', Theme::current()->options ?? []);
     }
 
+    public function test_heading_levels_follow_the_headings_settings_until_given_their_own(): void
+    {
+        $theme = Theme::current();
+        $theme->update(['font_headings' => 'Lora', 'options' => ['heading_color' => '#111111', 'heading_weight' => '500']]);
+
+        $variables = $theme->cssVariables();
+        $this->assertSame("'Lora', serif", $variables['--font-family-h3']);
+        $this->assertSame('#111111', $variables['--color-h3']);
+        $this->assertSame('500', $variables['--font-weight-h3']);
+
+        $theme->update(['options' => ['heading_color' => '#111111', 'heading_weight' => '500', 'heading_font_h3' => 'Lobster', 'heading_color_h3' => '#222222', 'heading_weight_h3' => '400']]);
+
+        $variables = $theme->cssVariables();
+        $this->assertSame("'Lobster', cursive", $variables['--font-family-h3']);
+        $this->assertSame('#222222', $variables['--color-h3']);
+        $this->assertSame('400', $variables['--font-weight-h3']);
+        $this->assertSame("'Lora', serif", $variables['--font-family-h4']);
+        $this->assertSame('#111111', $variables['--color-h4']);
+    }
+
+    public function test_untouched_headings_and_page_titles_keep_their_original_look(): void
+    {
+        $variables = Theme::current()->cssVariables();
+
+        $this->assertSame(Theme::current()->color_secondary, $variables['--color-heading']);
+        $this->assertSame('700', $variables['--font-weight-heading']);
+        $this->assertSame('1.25', $variables['--line-height-heading']);
+        $this->assertSame('36px', $variables['--font-size-h1']);
+        $this->assertSame('2.5rem', $variables['--page-title-size']);
+        $this->assertSame('1.15', $variables['--page-title-line-height']);
+    }
+
+    public function test_page_titles_follow_a_chosen_heading_size_and_line_height(): void
+    {
+        $theme = Theme::current();
+        $theme->update(['options' => ['font_size_h1' => 50, 'heading_line_height' => 1.4]]);
+
+        $variables = $theme->cssVariables();
+        $this->assertSame('50px', $variables['--page-title-size']);
+        $this->assertSame('50px', $variables['--font-size-h1']);
+        $this->assertSame('1.4', $variables['--page-title-line-height']);
+        $this->assertSame('1.4', $variables['--line-height-heading']);
+    }
+
+    public function test_a_font_chosen_for_one_heading_level_is_loaded(): void
+    {
+        $theme = Theme::current();
+        $theme->update(['options' => ['heading_font_h4' => 'Lobster']]);
+
+        $this->assertSame(1, substr_count($theme->googleFontsUrl(), 'family=Lobster'));
+        $this->assertSame(1, substr_count($theme->googleFontsUrl(), 'family=Noto+Serif'));
+    }
+
+    public function test_heading_settings_are_validated(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['options' => [
+                'heading_line_height' => 2.5,
+                'heading_weight' => '900',
+                'heading_weight_h2' => '100',
+                'heading_font_h2' => 'Comic Sans MS',
+                'heading_color_h2' => 'red; } *',
+            ]])
+            ->call('save')
+            ->assertHasFormErrors(['options.heading_line_height', 'options.heading_weight', 'options.heading_weight_h2', 'options.heading_font_h2', 'options.heading_color_h2']);
+    }
+
+    public function test_heading_settings_can_be_saved_through_the_screen(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->assertSchemaStateSet(['options.heading_weight' => '700', 'options.heading_line_height' => 1.25])
+            ->fillForm(['options' => [
+                'heading_weight_h2' => '500',
+                'heading_font_h2' => 'Lobster',
+                'heading_color_h2' => '#528bbc',
+            ]])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $options = Theme::current()->options;
+        $this->assertEquals(500, $options['heading_weight_h2']);
+        $this->assertSame('Lobster', $options['heading_font_h2']);
+        $this->assertSame('#528bbc', $options['heading_color_h2']);
+        $this->assertArrayNotHasKey('heading_weight', $options);
+        $this->assertArrayNotHasKey('heading_line_height', $options);
+    }
+
+    public function test_footer_menu_links_keep_their_sizes_until_a_footer_text_size_is_chosen(): void
+    {
+        $variables = Theme::current()->cssVariables();
+
+        $this->assertSame('13.6px', $variables['--footer-font-size']);
+        $this->assertSame('0.9375rem', $variables['--footer-link-size']);
+        $this->assertSame('0.875rem', $variables['--footer-column-link-size']);
+        $this->assertSame('1rem', $variables['--footer-column-heading-size']);
+    }
+
+    public function test_footer_menu_links_follow_a_chosen_footer_text_size(): void
+    {
+        $theme = Theme::current();
+        $theme->update(['options' => ['footer_text_size' => 20]]);
+
+        $variables = $theme->cssVariables();
+
+        $this->assertSame('20px', $variables['--footer-font-size']);
+        $this->assertSame('20px', $variables['--footer-link-size']);
+        $this->assertSame('20px', $variables['--footer-column-link-size']);
+        $this->assertSame('23px', $variables['--footer-column-heading-size']);
+    }
+
     public function test_every_setting_has_a_working_automatic_value(): void
     {
         $theme = Theme::current();
@@ -292,9 +406,9 @@ class ThemeOptionsTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         Livewire::test(ThemeSettings::class)
-            ->assertSee('Automatic: #2563eb')
-            ->assertSee('Automatic: 36 px')
-            ->assertSee('Automatic: Centered');
+            ->assertSee('Auto: #2563eb')
+            ->assertSee('Auto: 36 px')
+            ->assertSee('Auto: Centered');
     }
 
     public function test_only_the_chosen_footer_styles_colors_are_shown(): void

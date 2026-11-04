@@ -187,13 +187,21 @@ class Theme extends Model
     {
         return match ($option['type']) {
             'color' => isset($option['alpha']) ? self::rgba((string) $value, $option['alpha']) : (string) $value,
-            'px' => rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.').'px',
+            'px' => self::pxCss((float) $value),
             'font' => self::fontStack((string) $value),
             'code_font' => "'{$value}', monospace",
             'image' => filled($value) ? "url('".Storage::disk('uploads')->url((string) $value)."')" : 'none',
             'toggle' => $value ? '1' : '0',
             default => (string) $value,
         };
+    }
+
+    /**
+     * A size as CSS, such as "17.6px".
+     */
+    public static function pxCss(float $pixels): string
+    {
+        return rtrim(rtrim(number_format($pixels, 2, '.', ''), '0'), '.').'px';
     }
 
     /**
@@ -242,7 +250,7 @@ class Theme extends Model
     public function googleFontsUrl(): string
     {
         return ThemeFonts::googleFontsUrl(
-            collect([$this->font_body, $this->font_headings, ...array_map($this->option(...), ['font_quotes', 'font_display', 'font_code'])])
+            collect([$this->font_body, $this->font_headings, ...array_map($this->option(...), ['font_quotes', 'font_display', 'font_code', 'heading_font_h2', 'heading_font_h3', 'heading_font_h4', 'heading_font_h5', 'heading_font_h6'])])
                 ->when($this->hasTopBar(), fn ($fonts) => $fonts->push($this->option('top_bar_font'))),
         );
     }

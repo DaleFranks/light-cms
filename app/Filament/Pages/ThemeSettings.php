@@ -26,7 +26,9 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -201,16 +203,25 @@ class ThemeSettings extends Page
                                 ->description('Display and handwriting fonts aren\'t offered for body text because they\'re hard to read in paragraphs.')
                                 ->columns(3)
                                 ->schema([
-                                    self::fontSelect('font_headings', ThemeFonts::forHeadings())
-                                        ->label('Headings')
-                                        ->required(),
                                     self::fontSelect('font_body', ThemeFonts::forBodyText())
                                         ->label('Body text')
                                         ->required(),
                                     ...self::optionFields('Fonts', 'Fonts'),
                                 ]),
                             self::optionsSection('Fonts', 'Text'),
-                            self::optionsSection('Fonts', 'Text sizes'),
+                            Section::make('Headings')
+                                ->description('These set Heading 1 and page titles, and every other heading level unless it has its own font, weight or color below. Headings in Dark, Light and Primary color panels and in cards keep their own look.')
+                                ->schema([
+                                    Grid::make(4)->schema([
+                                        self::fontSelect('font_headings', ThemeFonts::forHeadings(), weightOption: 'heading_weight')
+                                            ->label('Font')
+                                            ->required(),
+                                        ...self::optionFields('Fonts', 'Headings'),
+                                    ]),
+                                    ...array_map(fn (int $level): Fieldset => Fieldset::make('Heading '.$level)
+                                        ->columns(4)
+                                        ->schema(self::optionFields('Fonts', 'Heading '.$level)), range(2, 6)),
+                                ]),
                         ]),
                         Tab::make('Cards')->schema([
                             Section::make('Cards')->columns(3)->schema([
@@ -386,7 +397,7 @@ class ThemeSettings extends Page
     private static function optionField(string $key, array $option): Field
     {
         $name = 'options.'.$key;
-        $automatic = fn (Get $get): string => 'Automatic: '.self::describe($option, self::previewTheme($get)->automaticOption($key));
+        $automatic = fn (Get $get): string => 'Auto: '.self::describe($option, self::previewTheme($get)->automaticOption($key));
 
         $field = match ($option['type']) {
             'color' => ColorPicker::make($name)->hex()->regex(self::HEX_PATTERN)->placeholder($automatic),
@@ -400,7 +411,7 @@ class ThemeSettings extends Page
                     }
                 }),
             'seconds' => TextInput::make($name)->numeric()->minValue($option['min'])->maxValue($option['max'])->suffix('seconds')->placeholder($automatic),
-            'font' => self::fontSelect($name, ThemeFonts::forHeadings(), $key)->placeholder($automatic),
+            'font' => self::fontSelect($name, ThemeFonts::forHeadings(), $key, $option['weight_option'] ?? null, isset($option['sample_when_chosen']))->placeholder($automatic),
             'code_font' => self::fontSelect($name, ThemeFonts::forCode(), $key)->placeholder($automatic),
             'choice' => Select::make($name)->options($option['choices'])->placeholder(isset($option['always_shown']) ? null : $automatic)->selectablePlaceholder(! isset($option['always_shown'])),
             'toggle' => Toggle::make($name)->inline(false),
@@ -410,6 +421,10 @@ class ThemeSettings extends Page
 
         if (isset($option['footer_style'])) {
             $field->visible(fn (Get $get): bool => self::footerStyle($get)?->value === $option['footer_style']);
+        }
+
+        if (isset($option['live'])) {
+            $field->live();
         }
 
         // Help text would take the place of a font's live sample, so it's only set when there is some
@@ -435,6 +450,7 @@ class ThemeSettings extends Page
         }
 
         $theme->font_body = (string) ($get('font_body') ?: $saved->font_body);
+        $theme->font_headings = (string) ($get('font_headings') ?: $saved->font_headings);
 
         $position = $get('site_name_position');
         $theme->site_name_position = $position instanceof SiteNamePosition ? $position : (SiteNamePosition::tryFrom((string) $position) ?? $saved->site_name_position);
@@ -478,20 +494,28 @@ class ThemeSettings extends Page
 
     /**
      * A searchable list of fonts, with a live sample of the chosen one beneath it.
-     * For a detailed setting, the sample shows the automatic font while it's empty.
+     * For a detailed setting, the sample shows the automatic font while it's empty,
+     * unless it's only wanted once a font has been chosen.
      *
      * @param  array<string, string>|array<string, array<string, string>>  $fonts
      */
-    private static function fontSelect(string $name, array $fonts, ?string $optionKey = null): Select
+    private static function fontSelect(string $name, array $fonts, ?string $optionKey = null, ?string $weightOption = null, bool $sampleOnlyWhenChosen = false): Select
     {
         return Select::make($name)
             ->options($fonts)
             ->searchable()
             ->live()
-            ->belowContent(function (Get $get) use ($name, $optionKey): ?View {
-                $font = $get($name) ?: ($optionKey ? self::previewTheme($get)->automaticOption($optionKey) : null);
+            ->belowContent(function (Get $get) use ($name, $optionKey, $weightOption, $sampleOnlyWhenChosen): ?View {
+                if ($sampleOnlyWhenChosen && blank($get($name))) {
+                    return null;
+                }
 
-                return filled($font) ? view('filament.font-sample', ['font' => $font]) : null;
+                $preview = self::previewTheme($get);
+                $font = $get($name) ?: ($optionKey ? $preview->automaticOption($optionKey) : null);
+
+                return filled($font)
+                    ? view('filament.font-sample', ['font' => $font, 'weight' => $weightOption ? $preview->option($weightOption) : 400])
+                    : null;
             });
     }
 }

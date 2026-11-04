@@ -23,11 +23,16 @@ use Closure;
  *   for settings that set more than one, or combine with another (gradients)
  * - always_shown: shows the value in use rather than being empty and automatic;
  *   left at its default, it isn't kept as a choice
+ * - sample_when_chosen and weight_option: for fonts, when the live sample shows
+ *   and which weight setting it uses
+ * - live: updates the screen as soon as it changes
  * - alpha: for colors shown see-through on the site, such as the header
  * - footer_style: for footer colors, the footer style they belong to
  */
 class ThemeOptions
 {
+    private const HEADING_WEIGHTS = ['400' => 'Regular', '500' => 'Medium', '600' => 'Semi-bold', '700' => 'Bold'];
+
     /**
      * @return array<string, array<string, mixed>>
      */
@@ -147,6 +152,33 @@ class ThemeOptions
     }
 
     /**
+     * The settings for one heading level below the first. Each follows the Headings
+     * settings until it's given its own, except its size, which is its own already.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private static function headingLevel(int $level, float $size, float $minimumSize = 12): array
+    {
+        $section = 'Heading '.$level;
+
+        return [
+            'heading_font_h'.$level => [
+                'tab' => 'Fonts', 'section' => $section, 'label' => 'Font', 'type' => 'font',
+                'default' => fn (Theme $theme): string => $theme->font_headings, 'var' => '--font-family-h'.$level,
+                'sample_when_chosen' => true, 'weight_option' => 'heading_weight_h'.$level,
+            ],
+            'font_size_h'.$level => self::px('Fonts', $section, 'Size', $size, '--font-size-h'.$level, $minimumSize, 96),
+            'heading_weight_h'.$level => [
+                'tab' => 'Fonts', 'section' => $section, 'label' => 'Weight', 'type' => 'choice',
+                'choices' => self::HEADING_WEIGHTS, 'var' => '--font-weight-h'.$level, 'live' => true,
+                'default' => fn (Theme $theme): string => (string) $theme->option('heading_weight'),
+            ],
+            'heading_color_h'.$level => self::color('Fonts', $section, 'Color',
+                fn (Theme $theme): string => (string) $theme->option('heading_color'), '--color-h'.$level),
+        ];
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      */
     private static function fonts(): array
@@ -158,6 +190,7 @@ class ThemeOptions
                 'tab' => 'Fonts', 'section' => 'Fonts', 'label' => 'Code', 'type' => 'code_font',
                 'default' => 'Fira Code', 'var' => '--font-family-code',
             ],
+            'font_size_base' => self::px('Fonts', 'Text', 'Text size', 17, '--font-size-base', 12, 28),
             'line_height' => [
                 'tab' => 'Fonts', 'section' => 'Text', 'label' => 'Line height', 'type' => 'number', 'always_shown' => true,
                 'default' => 1.6, 'var' => '--line-height-content', 'min' => 1.2, 'max' => 2.5, 'step' => 0.1,
@@ -169,13 +202,35 @@ class ThemeOptions
                 'help' => 'For paragraphs, lists and quotes in pages and posts. Justified text goes back to left on phones and small tablets. Headings are always left-aligned.',
                 'css' => fn (string $value): array => ['--text-align-content' => $value === 'justified' ? 'justify' : 'inherit'],
             ],
-            'font_size_base' => self::px('Fonts', 'Text sizes', 'Body text', 17, '--font-size-base', 12, 28),
-            'font_size_h1' => self::px('Fonts', 'Text sizes', 'Heading 1', 36, '--font-size-h1', 12, 96),
-            'font_size_h2' => self::px('Fonts', 'Text sizes', 'Heading 2', 26, '--font-size-h2', 12, 96),
-            'font_size_h3' => self::px('Fonts', 'Text sizes', 'Heading 3', 20, '--font-size-h3', 12, 96),
-            'font_size_h4' => self::px('Fonts', 'Text sizes', 'Heading 4', 17.6, '--font-size-h4', 12, 96),
-            'font_size_h5' => self::px('Fonts', 'Text sizes', 'Heading 5', 16, '--font-size-h5', 10, 96),
-            'font_size_h6' => self::px('Fonts', 'Text sizes', 'Heading 6', 14, '--font-size-h6', 10, 96),
+            'font_size_h1' => [
+                ...self::px('Fonts', 'Headings', 'Heading 1 size', 36, '--font-size-h1', 12, 96),
+                // A page title is a Heading 1, but stays its original size until a size is chosen
+                'css' => fn (mixed $value, Theme $theme): array => [
+                    '--font-size-h1' => Theme::pxCss((float) $value),
+                    '--page-title-size' => filled($theme->options['font_size_h1'] ?? null) ? Theme::pxCss((float) $value) : '2.5rem',
+                ],
+            ],
+            'heading_weight' => [
+                'tab' => 'Fonts', 'section' => 'Headings', 'label' => 'Weight', 'type' => 'choice', 'always_shown' => true,
+                'choices' => self::HEADING_WEIGHTS, 'default' => '700', 'var' => '--font-weight-heading', 'live' => true,
+                'help' => 'A font without this weight uses its closest one.',
+            ],
+            'heading_color' => self::color('Fonts', 'Headings', 'Color', fn (Theme $theme): string => $theme->color_secondary, '--color-heading'),
+            'heading_line_height' => [
+                'tab' => 'Fonts', 'section' => 'Headings', 'label' => 'Line height', 'type' => 'number', 'always_shown' => true,
+                'default' => 1.25, 'min' => 1.0, 'max' => 2.0, 'step' => 0.1,
+                'help' => 'For every heading level.',
+                // Page titles stay at their original, tighter spacing until a line height is chosen
+                'css' => fn (mixed $value, Theme $theme): array => [
+                    '--line-height-heading' => (string) $value,
+                    '--page-title-line-height' => filled($theme->options['heading_line_height'] ?? null) ? (string) $value : '1.15',
+                ],
+            ],
+            ...self::headingLevel(2, 26),
+            ...self::headingLevel(3, 20),
+            ...self::headingLevel(4, 17.6),
+            ...self::headingLevel(5, 16, 10),
+            ...self::headingLevel(6, 14, 10),
         ];
     }
 
@@ -256,7 +311,21 @@ class ThemeOptions
                     '--footer-justify' => $value === 'left' ? 'flex-start' : 'center',
                 ],
             ],
-            'footer_text_size' => self::px('Footer', 'Layout', 'Text size', 13.6, '--footer-font-size', 10, 24),
+            'footer_text_size' => [
+                ...self::px('Footer', 'Layout', 'Text size', 13.6, '--footer-font-size', 10, 24),
+                // The menu links keep their original sizes until a size is chosen. In the
+                // multi-column menu, the column headings stay a step above their links.
+                'css' => function (mixed $value, Theme $theme): array {
+                    $isChosen = filled($theme->options['footer_text_size'] ?? null);
+
+                    return [
+                        '--footer-font-size' => Theme::pxCss((float) $value),
+                        '--footer-link-size' => $isChosen ? Theme::pxCss((float) $value) : '0.9375rem',
+                        '--footer-column-link-size' => $isChosen ? Theme::pxCss((float) $value) : '0.875rem',
+                        '--footer-column-heading-size' => $isChosen ? Theme::pxCss(round((float) $value * 1.15, 1)) : '1rem',
+                    ];
+                },
+            ],
             'footer_spacing' => self::px('Footer', 'Layout', 'Space above and below', 40, '--footer-padding', 0, 160),
         ];
 

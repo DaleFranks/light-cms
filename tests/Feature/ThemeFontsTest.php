@@ -123,4 +123,14 @@ class ThemeFontsTest extends TestCase
             ->fillForm(['font_body' => 'Vollkorn'])
             ->assertSeeHtml('font-family: &#039;Vollkorn&#039;, serif');
     }
+
+    public function test_a_heading_levels_sample_only_shows_once_it_has_its_own_font(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->assertDontSeeHtml('font-family: &#039;Lobster&#039;')
+            ->fillForm(['options.heading_font_h3' => 'Lobster', 'options.heading_weight_h3' => '400'])
+            ->assertSeeHtml('font-family: &#039;Lobster&#039;, cursive; font-size: 1.125rem; line-height: 1.5; font-weight: 400;');
+    }
 }

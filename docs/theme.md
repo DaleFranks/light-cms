@@ -2,7 +2,7 @@
 
 The Theme screen sets how the whole site looks. There's no template code to edit.
 
-Most settings start **empty, meaning automatic**: their value is worked out from the main colors and fonts, and the grey "Automatic: …" text in each box shows what that currently is. Type a value to override just that setting; clear it to go back to automatic. So a site looks right with only the main settings chosen.
+Most settings start **empty, meaning automatic**: their value is worked out from the main colors and fonts, and the grey "Auto: …" text in each box shows what that currently is. Type a value to override just that setting; clear it to go back to automatic. So a site looks right with only the main settings chosen.
 
 **Reset to defaults** puts everything back to the original look and removes the logo and tab icon. It keeps the site name and the top bar's text.
 
@@ -30,9 +30,10 @@ If the settings have changed since you opened the screen, in another browser tab
 
 **Fonts**
 - The body and heading fonts, plus fonts for quotes, large display headings and code, chosen from a list of Google Fonts grouped by type. Type in a list to search it. A sample of the chosen font appears beneath each list. Display and handwriting fonts aren't offered for body text. Fonts load from Google; a site doesn't keep font files of its own.
-- Text sizes for body text and each heading level.
+- **Text size** for body text.
 - **Text alignment**: **Left** or **Justified**, for paragraphs, lists and quotes in pages and posts. Justified text goes back to left on phones and small tablets. Headings are always left-aligned, and tables, cards and modules aren't affected.
 - **Line height**: the space between lines of text in pages and posts, as a multiple of the text size. It starts at 1.6, and clearing the box puts 1.6 back. Anything inside a page's content follows it unless it has spacing of its own, such as headings. The site's header, menu and footer don't.
+- **Headings**: the font, size, weight, color and line height of Heading 1 and page titles, which every other heading level follows by default. Heading 2 to Heading 6 can each have their own font, size, weight and color, and line height is shared by all of them. A font without the chosen weight uses its closest one. Headings in Dark, Light and Primary color panels and in cards keep their own look. Until a Heading 1 size or line height is chosen, page titles stay at 40 px and 1.15.
 
 **Cards**: card title and text colors and sizes.
 
