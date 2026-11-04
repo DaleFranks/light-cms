@@ -5,8 +5,10 @@ namespace App\Filament\Resources\Images;
 use App\Filament\Resources\Images\Pages\ManageImages;
 use App\Models\Image;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -17,7 +19,9 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
+use RuntimeException;
 
 class ImageResource extends Resource
 {
@@ -52,8 +56,9 @@ class ImageResource extends Resource
             ->columns([
                 Stack::make([
                     ImageColumn::make('preview')
-                        ->state(fn (Image $record): string => $record->path())
+                        ->state(fn (Image $record): string => $record->versionedPath())
                         ->disk(Image::DISK)
+                        ->checkFileExistence(false)
                         ->imageHeight(160)
                         ->extraImgAttributes(['style' => 'max-width: 100%; object-fit: contain;', 'loading' => 'lazy']),
                     TextColumn::make('filename')
@@ -79,6 +84,7 @@ class ImageResource extends Resource
                 ])->space(2),
             ])
             ->recordActions([
+                self::replaceAction(),
                 EditAction::make()
                     ->modalHeading(fn (Image $record): string => 'Edit '.$record->filename),
                 DeleteAction::make()
@@ -99,6 +105,58 @@ class ImageResource extends Resource
                         $action->cancel();
                     }),
             ]);
+    }
+
+    /**
+     * Swaps a new file in under an image's name, for every place it's used.
+     */
+    private static function replaceAction(): Action
+    {
+        return Action::make('replace')
+            ->icon(Heroicon::OutlinedArrowPath)
+            ->modalHeading(fn (Image $record): string => 'Replace '.$record->filename)
+            ->modalSubmitActionLabel('Replace')
+            ->schema(fn (Image $record): array => [
+                Text::make(new HtmlString(
+                    '<img src="'.e($record->url()).'" alt="" style="max-width: 100%; max-height: 160px; object-fit: contain;">',
+                )),
+                Text::make(self::whereUsedText($record).' The new file keeps this name, so they\'ll all show it. The current file is overwritten and can\'t be brought back, except from a backup.'),
+                FileUpload::make('file')
+                    ->hiddenLabel()
+                    ->image()
+                    ->acceptedFileTypes(array_keys(Image::TYPES))
+                    ->storeFiles(false)
+                    ->required(),
+            ])
+            ->action(function (Action $action, Image $record, array $data): void {
+                try {
+                    $record->replaceWith($data['file']);
+                } catch (RuntimeException $exception) {
+                    Notification::make()
+                        ->danger()
+                        ->title('The image wasn\'t replaced')
+                        ->body($exception->getMessage())
+                        ->persistent()
+                        ->send();
+
+                    $action->halt();
+                }
+
+                Notification::make()
+                    ->success()
+                    ->title($record->filename.' replaced')
+                    ->body("Now {$record->width} × {$record->height} · ".Number::fileSize($record->size))
+                    ->send();
+            });
+    }
+
+    private static function whereUsedText(Image $image): string
+    {
+        $usages = $image->usages();
+
+        return $usages->isEmpty()
+            ? 'This image isn\'t used anywhere yet.'
+            : 'This image is used in: '.$usages->implode(', ').'.';
     }
 
     public static function getPages(): array

@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use RuntimeException;
 use Tests\TestCase;
 
 class ImageResourceTest extends TestCase
@@ -100,5 +101,112 @@ class ImageResourceTest extends TestCase
             ->assertNotified('team.jpg is in use and can\'t be deleted');
 
         $this->assertModelExists($image);
+    }
+
+    private function libraryImage(string $filename = 'team.jpg', int $width = 800, int $height = 600): Image
+    {
+        $file = UploadedFile::fake()->image($filename, $width, $height);
+
+        Storage::disk(Image::DISK)->putFileAs(Image::DIRECTORY, $file, $filename);
+
+        return Image::factory()->create([
+            'filename' => $filename,
+            'width' => $width,
+            'height' => $height,
+            'size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'alt_text' => 'Our team',
+        ]);
+    }
+
+    public function test_replacing_an_image_keeps_its_name_and_description_and_updates_its_details(): void
+    {
+        $image = $this->libraryImage();
+        $this->travelTo('2026-11-03 12:00:00');
+
+        $image->replaceWith(UploadedFile::fake()->image('anything.jpg', 400, 200));
+
+        $image->refresh();
+        $this->assertSame('team.jpg', $image->filename);
+        $this->assertSame('Our team', $image->alt_text);
+        $this->assertSame(400, $image->width);
+        $this->assertSame(200, $image->height);
+        $this->assertSame((int) filesize(Storage::disk(Image::DISK)->path('images/team.jpg')), $image->size);
+        $this->assertSame([400, 200], array_slice(getimagesize(Storage::disk(Image::DISK)->path('images/team.jpg')), 0, 2));
+        $this->assertStringEndsWith('images/team.jpg?v='.now()->getTimestamp(), $image->url());
+        $this->assertSame(['team.jpg'], array_map('basename', Storage::disk(Image::DISK)->allFiles(Image::DIRECTORY)));
+    }
+
+    public function test_an_image_that_was_never_replaced_keeps_its_plain_address(): void
+    {
+        $this->assertStringEndsWith('images/team.jpg', $this->libraryImage()->url());
+    }
+
+    public function test_a_different_type_of_file_is_refused_and_the_image_is_untouched(): void
+    {
+        $image = $this->libraryImage();
+        $before = Storage::disk(Image::DISK)->get('images/team.jpg');
+
+        try {
+            $image->replaceWith(UploadedFile::fake()->image('new.png', 400, 200));
+            $this->fail('A PNG should not replace a JPG.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('This image is a JPG, so the new file must be too. To use a PNG, upload it as a new image.', $exception->getMessage());
+        }
+
+        $this->assertSame($before, Storage::disk(Image::DISK)->get('images/team.jpg'));
+        $this->assertSame(800, $image->fresh()->width);
+        $this->assertNull($image->fresh()->replaced_at);
+    }
+
+    public function test_a_jpeg_named_image_can_be_replaced_by_a_jpg(): void
+    {
+        $image = $this->libraryImage('old.jpeg');
+
+        $image->replaceWith(UploadedFile::fake()->image('new.jpg', 300, 300));
+
+        $this->assertSame(300, $image->fresh()->width);
+    }
+
+    public function test_a_file_that_isnt_an_image_is_refused(): void
+    {
+        $image = $this->libraryImage();
+
+        $this->expectException(RuntimeException::class);
+
+        $image->replaceWith(UploadedFile::fake()->createWithContent('new.jpg', 'not an image'));
+    }
+
+    public function test_an_image_can_be_replaced_from_the_screen_and_pages_show_the_new_size(): void
+    {
+        $image = $this->libraryImage();
+        Entry::factory()->published()->create(['slug' => 'about', 'body' => '[image:team.jpg]']);
+
+        Livewire::test(ManageImages::class)
+            ->callAction(TestAction::make('replace')->table($image), data: ['file' => UploadedFile::fake()->image('new.jpg', 400, 200)])
+            ->assertHasNoFormErrors()
+            ->assertNotified();
+
+        $this->assertSame(400, $image->fresh()->width);
+        $this->get('/about')
+            ->assertSee('width="400"', false)
+            ->assertSee('team.jpg?v=', false);
+    }
+
+    public function test_refresh_updates_only_images_whose_files_changed_and_lists_missing_ones(): void
+    {
+        $changed = $this->libraryImage('changed.jpg');
+        $same = $this->libraryImage('same.jpg');
+        $missing = Image::factory()->create(['filename' => 'gone.jpg']);
+        Storage::disk(Image::DISK)->putFileAs(Image::DIRECTORY, UploadedFile::fake()->image('x.jpg', 123, 45), 'changed.jpg');
+
+        Livewire::test(ManageImages::class)
+            ->callAction('refresh')
+            ->assertNotified();
+
+        $this->assertSame(123, $changed->fresh()->width);
+        $this->assertNotNull($changed->fresh()->replaced_at);
+        $this->assertNull($same->fresh()->replaced_at);
+        $this->assertNull($missing->fresh()->replaced_at);
     }
 }

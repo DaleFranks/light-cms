@@ -18,6 +18,32 @@ class ManageImages extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('refresh')
+                ->label('Refresh image details')
+                ->color('gray')
+                ->icon(Heroicon::OutlinedArrowPath)
+                ->tooltip('Re-reads every image file, for files replaced outside the admin, such as by FTP.')
+                ->action(function (): void {
+                    $missing = [];
+                    $updated = 0;
+
+                    foreach (Image::query()->cursor() as $image) {
+                        if (! $image->fileExists()) {
+                            $missing[] = $image->filename;
+
+                            continue;
+                        }
+
+                        $updated += (int) $image->refreshFromFile();
+                    }
+
+                    Notification::make()
+                        ->title($updated === 1 ? '1 image updated' : $updated.' images updated')
+                        ->body($missing === [] ? null : 'These files are missing: '.implode(', ', $missing).'.')
+                        ->status($missing === [] ? 'success' : 'warning')
+                        ->persistent($missing !== [])
+                        ->send();
+                }),
             Action::make('upload')
                 ->label('Upload images')
                 ->icon(Heroicon::OutlinedArrowUpTray)

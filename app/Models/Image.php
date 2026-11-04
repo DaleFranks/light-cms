@@ -10,13 +10,15 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * An image in the library, stored in public/uploads/images, where the web server serves it directly.
  *
  * Uploads keep a tidied version of their own name ("Team Photo.JPG" becomes
  * "team-photo.jpg"). A name that's taken is numbered ("team-photo-2.jpg"), so an
- * upload never replaces an image that's already there.
+ * upload never replaces an image that's already there. Replacing one is a separate,
+ * deliberate step that keeps its name, so everywhere it's used keeps working.
  */
 #[Fillable([
     'filename',
@@ -25,6 +27,7 @@ use Illuminate\Support\Str;
     'height',
     'size',
     'mime_type',
+    'replaced_at',
 ])]
 class Image extends Model
 {
@@ -69,6 +72,7 @@ class Image extends Model
             'width' => 'integer',
             'height' => 'integer',
             'size' => 'integer',
+            'replaced_at' => 'datetime',
         ];
     }
 
@@ -92,6 +96,92 @@ class Image extends Model
             'size' => (int) filesize($absolutePath),
             'mime_type' => $mimeType,
         ]);
+    }
+
+    /**
+     * Swap in a new file under this image's name. The new file is put in place only
+     * once it's safely on the disk, so a failure leaves the old one untouched.
+     *
+     * @throws RuntimeException With a message for the person replacing it.
+     */
+    public function replaceWith(UploadedFile $file): void
+    {
+        $mimeType = (string) $file->getMimeType();
+
+        if (self::TYPES[$mimeType] ?? null) {
+            if (self::TYPES[$mimeType] !== $this->normalizedExtension()) {
+                throw new RuntimeException(sprintf(
+                    'This image is a %s, so the new file must be too. To use a %s, upload it as a new image.',
+                    strtoupper($this->normalizedExtension()),
+                    strtoupper(self::TYPES[$mimeType]),
+                ));
+            }
+        } else {
+            throw new RuntimeException('The new file isn\'t a JPG, PNG, GIF or WebP image.');
+        }
+
+        $dimensions = @getimagesize($file->getRealPath());
+
+        if ($dimensions === false) {
+            throw new RuntimeException('The new file couldn\'t be read as an image.');
+        }
+
+        $disk = Storage::disk(self::DISK);
+        $temporaryPath = $file->storeAs(self::DIRECTORY, '.replacing-'.Str::random(32), self::DISK);
+
+        try {
+            if ($temporaryPath === false || ! rename($disk->path($temporaryPath), $disk->path($this->path()))) {
+                throw new RuntimeException('The new file couldn\'t be saved, so the image hasn\'t changed.');
+            }
+        } finally {
+            if ($temporaryPath !== false) {
+                $disk->delete($temporaryPath);
+            }
+        }
+
+        $this->update([
+            'width' => $dimensions[0],
+            'height' => $dimensions[1],
+            'size' => (int) filesize($disk->path($this->path())),
+            'mime_type' => $mimeType,
+            'replaced_at' => now(),
+        ]);
+    }
+
+    /**
+     * Bring the stored details up to date with the file, for one replaced by FTP.
+     *
+     * @return bool Whether anything had changed.
+     */
+    public function refreshFromFile(): bool
+    {
+        $absolutePath = Storage::disk(self::DISK)->path($this->path());
+        [$width, $height] = @getimagesize($absolutePath) ?: [$this->width, $this->height];
+
+        $this->fill(['width' => $width, 'height' => $height, 'size' => (int) filesize($absolutePath)]);
+
+        if (! $this->isDirty()) {
+            return false;
+        }
+
+        $this->replaced_at = now();
+
+        return $this->save();
+    }
+
+    public function fileExists(): bool
+    {
+        return Storage::disk(self::DISK)->exists($this->path());
+    }
+
+    /**
+     * The file name's extension, with "jpeg" counted as "jpg".
+     */
+    private function normalizedExtension(): string
+    {
+        $extension = strtolower(pathinfo($this->filename, PATHINFO_EXTENSION));
+
+        return $extension === 'jpeg' ? 'jpg' : $extension;
     }
 
     /**
@@ -129,7 +219,16 @@ class Image extends Model
      */
     public function url(): string
     {
-        return Storage::disk(self::DISK)->url($this->path());
+        return Storage::disk(self::DISK)->url($this->versionedPath());
+    }
+
+    /**
+     * Where the image is on the disk, with its version once it's been replaced, so
+     * browsers fetch the new file rather than showing the one they already have.
+     */
+    public function versionedPath(): string
+    {
+        return $this->path().($this->replaced_at ? '?v='.$this->replaced_at->getTimestamp() : '');
     }
 
     /**

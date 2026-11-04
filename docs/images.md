@@ -15,6 +15,16 @@ Images are stored exactly as uploaded; they aren't resized or compressed. For fa
 
 Each image's **shortcode** is shown in the list, such as `[image:team.jpg]`; click it to copy it. See [Writing content](writing-content.md#images) for setting its width, alignment and description.
 
+## Replacing an image
+
+**Replace** on an image swaps in a new file and keeps its name, so every page, shortcode and slider using it shows the new file, with its new width, height and size. Its description stays. The old file is overwritten and can only be brought back from a [backup](backup.md).
+
+The new file must be the same type: a JPG can only be replaced by a JPG. To use a different type, upload it as a new image.
+
+Visitors get the new file straight away, because the image's address gains a version (`photo.jpg?v=1730600000`). An address typed by hand into HTML or Custom CSS doesn't change, so a browser may show the old file until its saved copy expires.
+
+**Refresh image details**, at the top of the screen, is for files replaced outside the admin, such as by FTP. It re-reads every file, updates the details of any that changed, and lists any that are missing.
+
 ## Editing and deleting
 
 - **Description**: read aloud by screen readers, and shown if the image can't load. It's used wherever the shortcode doesn't give its own description.
