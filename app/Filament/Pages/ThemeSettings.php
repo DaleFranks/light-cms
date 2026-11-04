@@ -11,6 +11,7 @@ use App\Models\Module;
 use App\Models\Theme;
 use App\SiteNamePosition;
 use App\TextAlignment;
+use App\ThemeFonts;
 use App\ThemeOptions;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -32,6 +33,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -188,17 +190,18 @@ class ThemeSettings extends Page
                             self::optionsSection('Header', 'Menu on phones'),
                         ]),
                         Tab::make('Fonts')->schema([
-                            Section::make('Fonts')->columns(3)->schema([
-                                Select::make('font_headings')
-                                    ->label('Headings')
-                                    ->options(self::fontOptions())
-                                    ->required(),
-                                Select::make('font_body')
-                                    ->label('Body text')
-                                    ->options(self::fontOptions())
-                                    ->required(),
-                                ...self::optionFields('Fonts', 'Fonts'),
-                            ]),
+                            Section::make('Fonts')
+                                ->description('Display and handwriting fonts aren\'t offered for body text because they\'re hard to read in paragraphs.')
+                                ->columns(3)
+                                ->schema([
+                                    self::fontSelect('font_headings', ThemeFonts::forHeadings())
+                                        ->label('Headings')
+                                        ->required(),
+                                    self::fontSelect('font_body', ThemeFonts::forBodyText())
+                                        ->label('Body text')
+                                        ->required(),
+                                    ...self::optionFields('Fonts', 'Fonts'),
+                                ]),
                             self::optionsSection('Fonts', 'Text sizes'),
                         ]),
                         Tab::make('Cards')->schema([
@@ -353,8 +356,8 @@ class ThemeSettings extends Page
             'rgba' => ColorPicker::make($name)->rgba()->regex(self::RGBA_PATTERN)->placeholder($automatic),
             'px' => TextInput::make($name)->numeric()->minValue($option['min'])->maxValue($option['max'])->suffix('px')->placeholder($automatic),
             'seconds' => TextInput::make($name)->numeric()->minValue($option['min'])->maxValue($option['max'])->suffix('seconds')->placeholder($automatic),
-            'font' => Select::make($name)->options(self::fontOptions())->placeholder($automatic),
-            'code_font' => Select::make($name)->options(array_combine(Theme::CODE_FONTS, Theme::CODE_FONTS))->placeholder($automatic),
+            'font' => self::fontSelect($name, ThemeFonts::forHeadings(), $key)->placeholder($automatic),
+            'code_font' => self::fontSelect($name, ThemeFonts::forCode(), $key)->placeholder($automatic),
             'choice' => Select::make($name)->options($option['choices'])->placeholder($automatic),
             'toggle' => Toggle::make($name)->inline(false),
             'image' => FileUpload::make($name)->image()->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
@@ -365,9 +368,12 @@ class ThemeSettings extends Page
             $field->visible(fn (Get $get): bool => self::footerStyle($get)?->value === $option['footer_style']);
         }
 
-        return $field
-            ->label($option['label'])
-            ->helperText($option['help'] ?? null);
+        // Help text would take the place of a font's live sample, so it's only set when there is some
+        if (isset($option['help'])) {
+            $field->helperText($option['help']);
+        }
+
+        return $field->label($option['label']);
     }
 
     /**
@@ -383,6 +389,8 @@ class ThemeSettings extends Page
             $value = $get($color);
             $theme->{$color} = is_string($value) && preg_match(self::HEX_PATTERN, $value) ? $value : $saved->{$color};
         }
+
+        $theme->font_body = (string) ($get('font_body') ?: $saved->font_body);
 
         $position = $get('site_name_position');
         $theme->site_name_position = $position instanceof SiteNamePosition ? $position : (SiteNamePosition::tryFrom((string) $position) ?? $saved->site_name_position);
@@ -425,10 +433,21 @@ class ThemeSettings extends Page
     }
 
     /**
-     * @return array<string, string>
+     * A searchable list of fonts, with a live sample of the chosen one beneath it.
+     * For a detailed setting, the sample shows the automatic font while it's empty.
+     *
+     * @param  array<string, string>|array<string, array<string, string>>  $fonts
      */
-    private static function fontOptions(): array
+    private static function fontSelect(string $name, array $fonts, ?string $optionKey = null): Select
     {
-        return collect(Theme::FONTS)->keys()->mapWithKeys(fn (string $font): array => [$font => $font])->all();
+        return Select::make($name)
+            ->options($fonts)
+            ->searchable()
+            ->live()
+            ->belowContent(function (Get $get) use ($name, $optionKey): ?View {
+                $font = $get($name) ?: ($optionKey ? self::previewTheme($get)->automaticOption($optionKey) : null);
+
+                return filled($font) ? view('filament.font-sample', ['font' => $font]) : null;
+            });
     }
 }

@@ -29,7 +29,7 @@ If the settings have changed since you opened the screen, in another browser tab
 - **Menu on phones**: the colors of the menu that opens from the menu button.
 
 **Fonts**
-- The body and heading fonts, plus fonts for quotes, large display headings and code. All are Google Fonts.
+- The body and heading fonts, plus fonts for quotes, large display headings and code, chosen from a list of Google Fonts grouped by type. Type in a list to search it. A sample of the chosen font appears beneath each list. Display and handwriting fonts aren't offered for body text. Fonts load from Google; a site doesn't keep font files of its own.
 - Text sizes for body text and each heading level.
 
 **Cards**: card title and text colors and sizes.

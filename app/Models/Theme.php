@@ -7,6 +7,7 @@ use App\FooterStyle;
 use App\LogoPosition;
 use App\SiteNamePosition;
 use App\TextAlignment;
+use App\ThemeFonts;
 use App\ThemeOptions;
 use Closure;
 use Database\Factories\ThemeFactory;
@@ -79,36 +80,6 @@ class Theme extends Model
         'custom_css' => null,
         'options' => null,
     ];
-
-    /**
-     * Google Fonts offered on the Theme screen, with their fallback font.
-     *
-     * @var array<string, string>
-     */
-    public const FONTS = [
-        'Inter' => 'sans-serif',
-        'Lato' => 'sans-serif',
-        'Montserrat' => 'sans-serif',
-        'Noto Sans' => 'sans-serif',
-        'Open Sans' => 'sans-serif',
-        'Outfit' => 'sans-serif',
-        'Poppins' => 'sans-serif',
-        'Roboto' => 'sans-serif',
-        'Source Sans 3' => 'sans-serif',
-        'Work Sans' => 'sans-serif',
-        'Lora' => 'serif',
-        'Merriweather' => 'serif',
-        'Noto Serif' => 'serif',
-        'Playfair Display' => 'serif',
-        'Roboto Slab' => 'serif',
-    ];
-
-    /**
-     * Google Fonts offered for code, all monospaced.
-     *
-     * @var list<string>
-     */
-    public const CODE_FONTS = ['Fira Code', 'IBM Plex Mono', 'JetBrains Mono', 'Roboto Mono', 'Source Code Pro'];
 
     /**
      * Get the attributes that should be cast.
@@ -270,13 +241,10 @@ class Theme extends Model
      */
     public function googleFontsUrl(): string
     {
-        $families = collect([$this->font_body, $this->font_headings, ...array_map($this->option(...), ['font_quotes', 'font_display', 'font_code'])])
-            ->when($this->hasTopBar(), fn ($fonts) => $fonts->push($this->option('top_bar_font')))
-            ->unique()
-            ->map(fn (string $font): string => 'family='.str_replace(' ', '+', $font).':wght@400;500;600;700')
-            ->implode('&');
-
-        return 'https://fonts.googleapis.com/css2?'.$families.'&display=swap';
+        return ThemeFonts::googleFontsUrl(
+            collect([$this->font_body, $this->font_headings, ...array_map($this->option(...), ['font_quotes', 'font_display', 'font_code'])])
+                ->when($this->hasTopBar(), fn ($fonts) => $fonts->push($this->option('top_bar_font'))),
+        );
     }
 
     /**
@@ -300,7 +268,7 @@ class Theme extends Model
 
     private static function fontStack(string $font): string
     {
-        return "'{$font}', ".(self::FONTS[$font] ?? 'sans-serif');
+        return ThemeFonts::stack($font);
     }
 
     /**

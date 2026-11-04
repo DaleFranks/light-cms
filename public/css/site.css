@@ -236,6 +236,8 @@
 
 body {
     font-family: var(--font-family-body);
+    /* A font with no bold keeps its own shape instead of being thickened by the browser */
+    font-synthesis-weight: none;
     background-color: var(--color-bg-body);
     color: var(--color-text-main);
     line-height: 1.625;
