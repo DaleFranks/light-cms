@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\WarnsWhenSettingsChanged;
 use App\Mail\TestEmail;
 use App\Models\MailSettings;
 use App\Models\Theme;
@@ -19,6 +20,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
@@ -30,6 +32,8 @@ use Throwable;
  */
 class EmailSettings extends Page
 {
+    use WarnsWhenSettingsChanged;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
     protected static ?string $navigationLabel = 'Email';
@@ -42,6 +46,17 @@ class EmailSettings extends Page
     public ?array $data = [];
 
     public function mount(): void
+    {
+        $this->fillFormWithSavedSettings();
+        $this->rememberLoadedSettings();
+    }
+
+    protected function savedSettings(): Model
+    {
+        return MailSettings::current();
+    }
+
+    protected function fillFormWithSavedSettings(): void
     {
         $this->form->fill(MailSettings::current()->attributesToArray());
     }
@@ -134,9 +149,10 @@ class EmailSettings extends Page
         ]);
     }
 
-    public function save(): void
+    protected function saveSettings(): void
     {
         MailSettings::current()->update($this->form->getState());
+        $this->rememberLoadedSettings();
 
         Notification::make()
             ->success()
@@ -154,8 +170,17 @@ class EmailSettings extends Page
             ->color('gray')
             ->icon(Heroicon::OutlinedPaperAirplane)
             ->action(function (): void {
+                $this->form->validate();
+
+                if ($this->settingsChangedSinceLoading()) {
+                    $this->replaceMountedAction('settingsChanged');
+
+                    return;
+                }
+
                 $settings = MailSettings::current();
                 $settings->update($this->form->getState());
+                $this->rememberLoadedSettings();
                 $address = (string) auth()->user()?->email;
 
                 try {

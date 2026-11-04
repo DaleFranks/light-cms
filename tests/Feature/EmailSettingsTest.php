@@ -114,4 +114,76 @@ class EmailSettingsTest extends TestCase
 
         Mail::assertSent(TestEmail::class, fn (TestEmail $mail): bool => $mail->hasTo('me@acme.test'));
     }
+
+    public function test_saving_a_screen_opened_before_the_settings_changed_saves_nothing_and_asks(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $staleScreen = Livewire::test(EmailSettings::class);
+
+        MailSettings::current()->update(['from_address' => 'newer@acme.test']);
+
+        $staleScreen
+            ->fillForm(['from_name' => 'Stale name'])
+            ->call('save')
+            ->assertActionMounted('settingsChanged');
+
+        $settings = MailSettings::current();
+        $this->assertSame('newer@acme.test', $settings->from_address);
+        $this->assertNull($settings->from_name);
+    }
+
+    public function test_a_stale_screen_can_save_its_version_anyway(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $staleScreen = Livewire::test(EmailSettings::class);
+
+        MailSettings::current()->update(['from_address' => 'newer@acme.test']);
+
+        $staleScreen
+            ->fillForm(['from_name' => 'Stale name'])
+            ->call('save')
+            ->callMountedAction();
+
+        $settings = MailSettings::current();
+        $this->assertNull($settings->from_address);
+        $this->assertSame('Stale name', $settings->from_name);
+    }
+
+    public function test_a_stale_screen_asks_before_sending_a_test_email(): void
+    {
+        Mail::fake();
+        $this->actingAs(User::factory()->create());
+
+        $staleScreen = Livewire::test(EmailSettings::class);
+
+        MailSettings::current()->update(['from_address' => 'newer@acme.test']);
+
+        $staleScreen
+            ->fillForm(['from_name' => 'Stale name'])
+            ->callAction('sendTestEmail')
+            ->assertActionMounted('settingsChanged');
+
+        Mail::assertNothingSent();
+        $this->assertNull(MailSettings::current()->from_name);
+    }
+
+    public function test_saving_repeatedly_doesnt_warn(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(EmailSettings::class)
+            ->fillForm(['from_name' => 'First'])
+            ->call('save')
+            ->assertActionNotMounted('settingsChanged')
+            ->fillForm(['from_name' => 'Second', 'smtp_password' => 'secret-password'])
+            ->call('save')
+            ->assertActionNotMounted('settingsChanged')
+            ->fillForm(['from_name' => 'Third'])
+            ->call('save')
+            ->assertActionNotMounted('settingsChanged');
+
+        $this->assertSame('Third', MailSettings::current()->from_name);
+    }
 }

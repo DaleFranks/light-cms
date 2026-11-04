@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\BoxStyle;
+use App\Filament\Concerns\WarnsWhenSettingsChanged;
 use App\Filament\Resources\Modules\ModuleResource;
 use App\FooterStyle;
 use App\LogoPosition;
@@ -31,6 +32,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * The site's look, edited with ordinary form controls instead of code.
@@ -43,6 +45,8 @@ use Filament\Support\Icons\Heroicon;
  */
 class ThemeSettings extends Page
 {
+    use WarnsWhenSettingsChanged;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPaintBrush;
 
     protected static ?string $navigationLabel = 'Theme';
@@ -59,6 +63,17 @@ class ThemeSettings extends Page
     public ?array $data = [];
 
     public function mount(): void
+    {
+        $this->fillFormWithSavedSettings();
+        $this->rememberLoadedSettings();
+    }
+
+    protected function savedSettings(): Model
+    {
+        return Theme::current();
+    }
+
+    protected function fillFormWithSavedSettings(): void
     {
         $this->fillForm(Theme::current());
     }
@@ -270,12 +285,13 @@ class ThemeSettings extends Page
         ]);
     }
 
-    public function save(): void
+    protected function saveSettings(): void
     {
         $state = $this->form->getState();
         $state['options'] = array_filter($state['options'] ?? [], 'filled') ?: null;
 
         Theme::current()->update($state);
+        $this->rememberLoadedSettings();
 
         Notification::make()
             ->success()
@@ -294,6 +310,7 @@ class ThemeSettings extends Page
                 $theme = Theme::current();
                 $theme->resetToDefaults();
                 $this->fillForm($theme);
+                $this->rememberLoadedSettings();
 
                 Notification::make()
                     ->success()

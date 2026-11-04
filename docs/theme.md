@@ -6,6 +6,8 @@ Most settings start **empty, meaning automatic**: their value is worked out from
 
 **Reset to defaults** puts everything back to the original look and removes the logo and tab icon. It keeps the site name and the top bar's text.
 
+If the settings have changed since you opened the screen, in another browser tab or by another admin, **Save** stops and asks what to do. **Load the latest settings** discards what you've changed on this screen. **Save my version anyway** replaces everything with what's on this screen.
+
 ## Tabs
 
 **Branding**

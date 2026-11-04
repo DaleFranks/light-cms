@@ -16,6 +16,10 @@ Switch on **Send through an SMTP server** to send through your email provider in
 - **Port**: leave empty for the usual one
 - **Username** and **Password**. The password is stored encrypted; once saved, leave the box empty to keep it.
 
+## If the settings have changed
+
+If the settings have changed since you opened the screen, in another browser tab or by another admin, saving stops and asks what to do. **Load the latest settings** discards what you've changed on this screen. **Save my version anyway** replaces everything with what's on this screen; if you were sending a test email, send it again afterwards.
+
 ## Test email
 
 **Save and send a test email** saves the settings, then sends a message to your own email address and says whether it worked. If it couldn't be sent, the message explains why.

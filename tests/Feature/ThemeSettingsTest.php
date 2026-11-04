@@ -88,4 +88,100 @@ class ThemeSettingsTest extends TestCase
         $this->assertSame(Theme::DEFAULTS['color_primary'], $theme->color_primary);
         $this->assertNull($theme->custom_css);
     }
+
+    public function test_saving_a_screen_opened_before_the_theme_changed_saves_nothing_and_asks(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Theme::current()->update(['color_primary' => '#111111', 'color_secondary' => '#222222']);
+
+        $staleScreen = Livewire::test(ThemeSettings::class);
+
+        Theme::current()->update(['color_secondary' => '#333333']);
+
+        $staleScreen
+            ->fillForm(['color_primary' => '#ff0000'])
+            ->call('save')
+            ->assertActionMounted('settingsChanged');
+
+        $theme = Theme::current();
+        $this->assertSame('#111111', $theme->color_primary);
+        $this->assertSame('#333333', $theme->color_secondary);
+    }
+
+    public function test_a_stale_screen_can_load_the_latest_theme_and_then_save_normally(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $staleScreen = Livewire::test(ThemeSettings::class);
+
+        Theme::current()->update(['color_secondary' => '#333333']);
+
+        $staleScreen
+            ->fillForm(['color_primary' => '#ff0000'])
+            ->call('save')
+            ->call('mountAction', 'loadLatestSettings')
+            ->callMountedAction()
+            ->assertActionNotMounted('settingsChanged')
+            ->assertSchemaStateSet(['color_primary' => Theme::DEFAULTS['color_primary'], 'color_secondary' => '#333333'])
+            ->fillForm(['color_primary' => '#00ff00'])
+            ->call('save')
+            ->assertActionNotMounted('settingsChanged');
+
+        $theme = Theme::current();
+        $this->assertSame('#00ff00', $theme->color_primary);
+        $this->assertSame('#333333', $theme->color_secondary);
+    }
+
+    public function test_a_stale_screen_can_save_its_version_anyway(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $staleScreen = Livewire::test(ThemeSettings::class);
+
+        Theme::current()->update(['color_secondary' => '#333333']);
+
+        $staleScreen
+            ->fillForm(['color_primary' => '#ff0000'])
+            ->call('save')
+            ->callMountedAction()
+            ->assertHasNoFormErrors();
+
+        $theme = Theme::current();
+        $this->assertSame('#ff0000', $theme->color_primary);
+        $this->assertSame(Theme::DEFAULTS['color_secondary'], $theme->color_secondary);
+    }
+
+    public function test_saving_repeatedly_and_after_a_reset_doesnt_warn(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(ThemeSettings::class)
+            ->fillForm(['color_primary' => '#ff0000'])
+            ->call('save')
+            ->assertActionNotMounted('settingsChanged')
+            ->fillForm(['color_primary' => '#00ff00'])
+            ->call('save')
+            ->assertActionNotMounted('settingsChanged')
+            ->callAction('resetToDefaults')
+            ->fillForm(['color_primary' => '#0000ff'])
+            ->call('save')
+            ->assertActionNotMounted('settingsChanged');
+
+        $this->assertSame('#0000ff', Theme::current()->color_primary);
+    }
+
+    public function test_a_form_with_mistakes_shows_them_before_any_warning(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $staleScreen = Livewire::test(ThemeSettings::class);
+
+        Theme::current()->update(['color_secondary' => '#333333']);
+
+        $staleScreen
+            ->fillForm(['color_primary' => 'red'])
+            ->call('save')
+            ->assertHasFormErrors(['color_primary'])
+            ->assertActionNotMounted('settingsChanged');
+    }
 }
