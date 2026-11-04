@@ -184,4 +184,13 @@ class ThemeSettingsTest extends TestCase
             ->assertHasFormErrors(['color_primary'])
             ->assertActionNotMounted('settingsChanged');
     }
+
+    public function test_the_admin_has_readable_hints(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get('/admin/theme-settings')
+            ->assertOk()
+            ->assertSee('select.fi-select-input:has(> option[value=""]:checked)', false);
+    }
 }

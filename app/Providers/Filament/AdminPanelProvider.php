@@ -49,6 +49,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,
             ])
+            // Hints in form boxes that are dark enough to read
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): View => view('filament.readable-hints'))
             // Which version this is, at the bottom of the menu
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn (): View => view('filament.version'))
             // A warning while a database update is waiting because it failed
