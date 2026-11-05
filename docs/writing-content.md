@@ -24,6 +24,16 @@ Shortcodes are written in square brackets and are replaced with something when t
 
 ### Images
 
+To add an image, put the cursor where you want it and click **Insert image**, just above the editor. Then choose one of these:
+
+- **Image library**: search for an image you've already uploaded.
+- **Upload**: add a new image to the library.
+- **Image address**: use an image kept somewhere else, such as Amazon S3. It stays where it is and isn't added to your library.
+
+Alt text you enter for a library image or an upload is saved in the library, so changing it applies wherever that image is used without its own. The shortcode then goes in at the cursor, ready for you to add a width or alignment. Images can't be dragged or pasted into the editor.
+
+You can also type shortcodes yourself:
+
 ```
 [image:team.jpg]
 [image:team.jpg|400|right|Our team at the office]

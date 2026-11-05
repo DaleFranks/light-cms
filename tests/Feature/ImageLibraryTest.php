@@ -105,16 +105,13 @@ class ImageLibraryTest extends TestCase
         Storage::disk(Image::DISK)->assertMissing('images/team.jpg');
     }
 
-    public function test_images_uploaded_in_the_content_editor_go_into_the_library(): void
+    public function test_content_editors_take_no_images_directly(): void
     {
         $editor = MarkdownEditor::make('body');
-        $upload = self::temporaryUpload(UploadedFile::fake()->image('Editor Shot.png', 50, 50));
 
-        $saved = $editor->saveUploadedFileAttachment($upload);
-
-        $this->assertInstanceOf(Image::class, $saved);
-        $this->assertSame('editor-shot.png', $saved->filename);
-        $this->assertSame('/uploads/images/editor-shot.png', $editor->getFileAttachmentUrl($saved));
+        $this->assertFalse($editor->hasFileAttachments());
+        $this->assertNull($editor->saveUploadedFileAttachment(self::temporaryUpload(UploadedFile::fake()->image('Editor Shot.png', 50, 50))));
+        $this->assertSame(0, Image::query()->count());
     }
 
     /**

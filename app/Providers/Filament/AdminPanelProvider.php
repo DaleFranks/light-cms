@@ -51,6 +51,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             // Hints in form boxes that are dark enough to read
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): View => view('filament.readable-hints'))
+            // Lets the Insert image popup put its shortcode at the cursor in the editor
+            ->renderHook(PanelsRenderHook::BODY_END, fn (): View => view('filament.insert-into-editor'))
             // Which version this is, at the bottom of the menu
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn (): View => view('filament.version'))
             // A warning while a database update is waiting because it failed

@@ -5,7 +5,7 @@ The image library holds every image used in the site's content.
 ## Adding images
 
 - Click **Upload images** and drop in one or more JPG, PNG, GIF or WebP files.
-- Images can also be uploaded straight from the content editor, and in a slider's slides; they're added to the library too.
+- **Insert image**, above each content editor, can upload one while you write (see [Writing content](writing-content.md#images)), and images can be uploaded in a slider's slides. They're added to the library too.
 
 Names are tidied up (lowercase, no spaces). A name that's already taken gets a number added (`team-2.jpg`), so an upload never replaces an existing image.
 
