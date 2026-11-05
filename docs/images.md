@@ -15,11 +15,11 @@ An image file over 500 KB shows **Large file** on the Images screen, and gets a 
 
 ## Using an image
 
-Each image's **shortcode** is shown in the list, such as `[image:team.jpg]`; click it to copy it. See [Writing content](writing-content.md#images) for setting its width, alignment and description.
+Each image's **shortcode** is shown in the list, such as `[image:team.jpg]`; click it to copy it. See [Writing content](writing-content.md#images) for setting its width, alignment and alt text.
 
 ## Replacing an image
 
-**Replace** on an image swaps in a new file and keeps its name, so every page, shortcode and slider using it shows the new file, with its new width, height and size. Its description stays. The old file is overwritten and can only be brought back from a [backup](backup.md).
+**Replace** on an image swaps in a new file and keeps its name, so every page, shortcode and slider using it shows the new file, with its new width, height and size. Its alt text stays. The old file is overwritten and can only be brought back from a [backup](backup.md).
 
 The new file must be the same type: a JPG can only be replaced by a JPG. To use a different type, upload it as a new image.
 
@@ -29,7 +29,7 @@ Visitors get the new file straight away, because the image's address gains a ver
 
 ## Editing and deleting
 
-- **Description**: read aloud by screen readers, and shown if the image can't load. It's used wherever the shortcode doesn't give its own description.
+- **Alt text**: read aloud by screen readers, and shown if the image can't load. It's used wherever the shortcode doesn't give its own alt text.
 - An image that's in use can't be deleted. The message says where it's used, so you can remove it there first.
 
 The logo and browser tab icon are uploaded on the [Theme](theme.md) screen, separately from the library.

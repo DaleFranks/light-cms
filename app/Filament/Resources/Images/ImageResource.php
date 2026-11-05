@@ -37,11 +37,11 @@ class ImageResource extends Resource
         return $schema
             ->columns(1)
             ->components([
-                Text::make(fn (Image $record): string => 'Place it in a page with '.$record->shortcode().'. Add a width, an alignment or a description after the name, e.g. [image:'.$record->filename.'|400|right|Our team].'),
+                Text::make(fn (Image $record): string => 'Place it in a page with '.$record->shortcode().'. Add a width, an alignment or alt text after the name, e.g. [image:'.$record->filename.'|400|right|Our team].'),
                 TextInput::make('alt_text')
-                    ->label('Description')
+                    ->label('Alt text')
                     ->maxLength(255)
-                    ->helperText('Read aloud by screen readers and shown if the image can\'t load. Used wherever the shortcode doesn\'t give its own description.'),
+                    ->helperText('Read aloud by screen readers and shown if the image can\'t load. Used wherever the shortcode doesn\'t give its own alt text.'),
             ]);
     }
 
@@ -85,7 +85,7 @@ class ImageResource extends Resource
                     TextColumn::make('alt_text')
                         ->color('gray')
                         ->size('sm')
-                        ->placeholder('No description')
+                        ->placeholder('No alt text')
                         ->limit(60)
                         ->searchable(),
                 ])->space(2),

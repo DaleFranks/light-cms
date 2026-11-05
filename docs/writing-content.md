@@ -33,7 +33,7 @@ Places an image from the [image library](images.md). After the file name, in any
 
 - a **width**: `400` (pixels), `50%`, or `400x300`
 - an **alignment**: `left` or `right` (text wraps around the image, except on phones and small tablets, where the image is centered on its own line), or `center`
-- a **description** for screen readers. Without one, the description saved in the image library is used.
+- **alt text** for screen readers. Without it, the alt text saved in the image library is used.
 
 A full image address (`https://...`) works too. Ordinary Markdown images, `![Our team](team.jpg)`, also find their file in the library.
 
