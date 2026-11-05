@@ -11,6 +11,8 @@ Once the setup screen is done, you're logged in to the admin at `/admin`. A good
 
 ## The Dashboard
 
+![The Dashboard, with quick actions and counts of pages, posts, images and more](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/dashboard.png)
+
 The first screen in the admin shows:
 
 - **How much the site holds**: pages, blogs, posts, images (with their total size), sliders, modules, cards and forms, with the number of form submissions this week

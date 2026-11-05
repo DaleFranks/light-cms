@@ -2,6 +2,8 @@
 
 The image library holds every image used in the site's content.
 
+![The Images screen, with a thumbnail, shortcode, size and alt text for each image](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/images.png)
+
 ## Adding images
 
 - Click **Upload images** and drop in one or more JPG, PNG, GIF or WebP files.

@@ -12,6 +12,10 @@ Everything lives in the site's own folder: the content in a single SQLite databa
 - **Several admins**, optional **two-step login**, password reset by email, and HTTPS enforced on HTTPS sites
 - **One-click backups**, and the database updates itself after an upgrade
 
+![The Insert image popup, listing images from the library with thumbnails](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/insert-image.png)
+
+![The Theme screen's Fonts tab, with a live sample under each font](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/fonts.png)
+
 ## Requirements
 
 - PHP **8.4.1 or newer**, with these extensions (most hosts have them all): `pdo_sqlite`, `mbstring`, `intl`, `openssl`, `fileinfo`, `tokenizer`, `ctype`, `dom`, `xmlreader`, `filter` and `session`. The `zip` extension is also needed for the Backup screen.

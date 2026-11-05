@@ -32,6 +32,8 @@ To add an image, put the cursor where you want it and click **Insert image**, ju
 
 Alt text you enter for a library image or an upload is saved in the library, so changing it applies wherever that image is used without its own. The shortcode then goes in at the cursor, ready for you to add a width or alignment. Images can't be dragged or pasted into the editor.
 
+![The Insert image popup, listing images from the library with thumbnails](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/insert-image.png)
+
 You can also type shortcodes yourself:
 
 ```
