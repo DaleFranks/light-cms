@@ -26,6 +26,13 @@ Most new settings leave a site as it was until they're used, but a few things ch
 
 If your **Custom CSS** sets these, check them after upgrading. In particular, `body { line-height: ... }` no longer reaches page text; use the Theme screen's **Line height** instead.
 
+## What looks different after upgrading to 0.7.0
+
+- **Adding images in the editor**: the image button in the editor's toolbar is gone, and images can no longer be dragged or pasted in. Use **Insert image**, just above the editor, to choose an image from the library, upload one, or give the address of one kept elsewhere. See [Writing content](writing-content.md#images).
+- **Alt text**: what the Images screen called an image's description is now called its alt text. Nothing about it has changed.
+
+Images already in your pages keep working, however they were added.
+
 ## The database update
 
 Some versions add something to the database, such as a new setting. Each of those changes is a file in `database/migrations/`; the site keeps a note of which ones it has applied. On the first visit after an upgrade, if there are new ones, the CMS:
