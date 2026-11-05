@@ -33,7 +33,7 @@ Places an image from the [image library](images.md). After the file name, in any
 
 - a **width**: `400` (pixels), `50%`, or `400x300`
 - an **alignment**: `left` or `right` (text wraps around the image, except on phones and small tablets, where the image is centered on its own line), or `center`
-- **alt text** for screen readers. Without it, the alt text saved in the image library is used.
+- **alt text** for screen readers. Without it, the alt text saved in the image library is used. Alt text given here also shows as a tooltip when someone hovers over the image with a mouse, so this is the way to give an image a tooltip: `[image:team.jpg|left|Our team in 2024]`.
 
 A full image address (`https://...`) works too. Ordinary Markdown images, `![Our team](team.jpg)`, also find their file in the library.
 
