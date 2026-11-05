@@ -88,7 +88,7 @@ class SliderForm
                                             ->helperText('It\'s added to the image library.'),
                                     ])
                                     ->createOptionUsing(fn (array $data): int => Image::storeUpload($data['file'])->id)
-                                    ->helperText('The image\'s description in the library is used as its alt text.'),
+                                    ->helperText('The image\'s alt text in the library is used.'),
                                 TextInput::make('caption')
                                     ->maxLength(255)
                                     ->helperText('Shown over the bottom of the image. Optional.'),
