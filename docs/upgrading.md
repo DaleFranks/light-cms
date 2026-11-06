@@ -9,7 +9,7 @@ New versions of Light CMS are published on the [Releases](https://github.com/Dal
 3. Upload everything inside its `light-cms` folder into the site's folder (such as `public_html`), replacing the files already there.
 4. Open the site. On that first visit the CMS brings its database up to date by itself (see below).
 
-The release zip doesn't contain anything that's yours, so uploading it never overwrites your content or settings: the database (`database/database.sqlite`), your images (`public/uploads/`), the settings file (`.env`) and `storage/` are left as they are.
+The release zip doesn't contain anything that's yours, so uploading it never overwrites your content or settings: the database (`database/database.sqlite`), your images and files (`public/uploads/`), the settings file (`.env`) and `storage/` are left as they are.
 
 If you edited the `.htaccess` file in the site's folder (for example to [redirect www](redirects.md#redirecting-www-to-your-main-address-or-another-domain)), the release's `.htaccess` replaces it, so make the same edit again, or don't upload that one file.
 
@@ -32,6 +32,12 @@ If your **Custom CSS** sets these, check them after upgrading. In particular, `b
 - **Alt text**: what the Images screen called an image's description is now called its alt text. Nothing about it has changed.
 
 Images already in your pages keep working, however they were added.
+
+## What looks different after upgrading to 0.8.0
+
+- **Files**: a new **Files** screen holds PDFs, Office and OpenDocument files, text, CSV and ZIP files for pages to link to, and **Insert file** sits beside Insert image above each editor. See [Files](files.md).
+- **Shortcodes inside code** (`` `[form:contact]` `` or a code block) are now shown as written instead of being filled in, so a page can explain how to use them. A shortcode meant to work shouldn't be in backticks.
+- **A form sent after its page was left open a long time** goes back to the form with the visitor's answers kept and a message to send it again, instead of showing a "Page Expired" error.
 
 ## The database update
 
