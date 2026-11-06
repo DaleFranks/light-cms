@@ -62,6 +62,27 @@ class BackupTest extends TestCase
         $this->assertSame(['About us'], $titles);
     }
 
+    public function test_compressed_uploads_are_stored_as_they_are_and_the_rest_are_compressed(): void
+    {
+        Storage::fake(Image::DISK);
+        Storage::disk(Image::DISK)->put('images/team.JPG', str_repeat('photo', 1000));
+        Storage::disk(Image::DISK)->put('files/menu.pdf', str_repeat('menu', 1000));
+        Storage::disk(Image::DISK)->put('files/prices.csv', str_repeat('tea,2.50'.PHP_EOL, 1000));
+
+        $this->zipPath = Backup::create();
+
+        $zip = new ZipArchive;
+        $this->assertTrue($zip->open($this->zipPath));
+        $method = fn (string $name): int => $zip->statName($name)['comp_method'];
+
+        $this->assertSame(ZipArchive::CM_STORE, $method('public/uploads/images/team.JPG'));
+        $this->assertSame(ZipArchive::CM_STORE, $method('public/uploads/files/menu.pdf'));
+        $this->assertSame(ZipArchive::CM_DEFLATE, $method('public/uploads/files/prices.csv'));
+        $this->assertSame(ZipArchive::CM_DEFLATE, $method('database/database.sqlite'));
+        $this->assertSame(str_repeat('photo', 1000), $zip->getFromName('public/uploads/images/team.JPG'));
+        $zip->close();
+    }
+
     public function test_the_backup_file_is_named_after_the_site_and_the_time(): void
     {
         config(['app.url' => 'https://www.example.com']);

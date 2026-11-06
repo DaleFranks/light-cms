@@ -32,6 +32,20 @@ class Backup
     private const ABANDONED_AFTER_SECONDS = 3600;
 
     /**
+     * How long making a backup may take, in seconds: longer than the few seconds
+     * hosts usually give a page, for a site with a large library.
+     */
+    private const TIME_LIMIT_SECONDS = 300;
+
+    /**
+     * Uploads whose contents are already compressed, so squeezing them again
+     * would take time and save next to nothing. They go in the zip as they are.
+     *
+     * @var list<string>
+     */
+    private const ALREADY_COMPRESSED = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'ico', 'pdf', 'zip', 'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp', 'woff', 'woff2'];
+
+    /**
      * Whether this server can make zip files.
      */
     public static function isAvailable(): bool
@@ -54,6 +68,11 @@ class Backup
     {
         if (! self::isAvailable()) {
             throw new RuntimeException('This server can\'t make zip files (PHP\'s zip extension is missing).');
+        }
+
+        // Where the host allows it; otherwise the host's own limit stays
+        if (function_exists('set_time_limit')) {
+            set_time_limit(self::TIME_LIMIT_SECONDS);
         }
 
         $folder = self::folder();
@@ -87,6 +106,10 @@ class Backup
 
             foreach ($uploads->allFiles() as $file) {
                 $zip->addFile($uploads->path($file), 'public/uploads/'.$file);
+
+                if (in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), self::ALREADY_COMPRESSED, true)) {
+                    $zip->setCompressionName('public/uploads/'.$file, ZipArchive::CM_STORE);
+                }
             }
 
             $zip->addFromString('RESTORING.txt', str_replace('%VERSION%', Version::label(), self::instructions()));
