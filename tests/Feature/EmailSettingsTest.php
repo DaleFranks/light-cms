@@ -25,7 +25,10 @@ class EmailSettingsTest extends TestCase
     public function test_by_default_email_comes_from_noreply_at_the_sites_domain_with_the_site_name(): void
     {
         Theme::factory()->create(['site_name' => 'Acme']);
-        $this->get('http://www.acme.test/');
+        config(['app.url' => 'https://www.acme.test']);
+
+        // The domain a visit claims makes no difference
+        $this->get('http://forged.test/');
 
         $settings = MailSettings::current();
 

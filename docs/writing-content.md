@@ -22,6 +22,8 @@ A page's title is already shown above its content, so if the content starts with
 
 Shortcodes are written in square brackets and are replaced with something when the page is shown. A shortcode naming something that doesn't exist is shown as written, so a mistake is easy to spot.
 
+To show a shortcode on a page without it being replaced, such as when explaining how to use one, put it in backticks (`` `[form:contact]` ``) or in a code block between lines of three backticks (```` ``` ````).
+
 ### Images
 
 To add an image, put the cursor where you want it and click **Insert image**, just above the editor. Then choose one of these:

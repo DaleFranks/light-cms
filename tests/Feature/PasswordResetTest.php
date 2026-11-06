@@ -40,6 +40,28 @@ class PasswordResetTest extends TestCase
         $this->assertSame('site@example.com', config('mail.from.address'));
     }
 
+    public function test_the_reset_link_leads_to_the_sites_saved_address_whatever_domain_the_request_claimed(): void
+    {
+        Notification::fake();
+        User::factory()->create(['email' => 'admin@example.com']);
+
+        // The request is for this test's own address; the site's saved address is elsewhere
+        $requestAddress = url('/admin');
+        config(['app.url' => 'https://acme.test/blog']);
+
+        Livewire::test(RequestPasswordReset::class)
+            ->fillForm(['email' => 'admin@example.com'])
+            ->call('request')
+            ->assertHasNoFormErrors();
+
+        Notification::assertSentTo(User::query()->sole(), ResetPassword::class, function (ResetPassword $notification): bool {
+            return str_starts_with($notification->url, 'https://acme.test/blog/admin/password-reset/reset?');
+        });
+
+        // Addresses on the screen itself still follow the request
+        $this->assertSame($requestAddress, url('/admin'));
+    }
+
     public function test_a_reset_link_that_cant_be_sent_says_so_and_what_to_do_instead(): void
     {
         Notification::fake();

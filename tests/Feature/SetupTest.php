@@ -10,6 +10,7 @@ use App\Models\Theme;
 use App\Models\User;
 use App\SetupKey;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -69,6 +70,27 @@ class SetupTest extends TestCase
     private function keyFile(): string
     {
         return $this->storagePath.'/'.SetupKey::FILE_NAME;
+    }
+
+    public function test_the_setup_screen_creates_the_tables_when_the_database_needs_them(): void
+    {
+        File::delete($this->storagePath.'/app/database-version');
+        Artisan::spy();
+
+        $this->get('/setup')->assertOk();
+
+        Artisan::shouldHaveReceived('call')->with('migrate', ['--force' => true])->once();
+        $this->assertFalse(DatabaseUpdate::isNeeded());
+    }
+
+    public function test_the_setup_screen_leaves_tables_that_are_already_up_to_date_alone(): void
+    {
+        Artisan::spy();
+
+        $this->get('/setup')->assertOk();
+        $this->get('/setup')->assertOk();
+
+        Artisan::shouldNotHaveReceived('call');
     }
 
     public function test_until_setup_is_done_every_visit_goes_to_the_setup_screen(): void

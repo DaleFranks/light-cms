@@ -54,7 +54,7 @@ class EntryController extends Controller
             ->with('blog')
             ->first();
 
-        if ($entry?->type === EntryType::Post && ! Entry::query()->published()->whereKey($entry->blog_id)->exists()) {
+        if ($entry?->type === EntryType::Post && ! $entry->blog?->isPublished()) {
             return null;
         }
 

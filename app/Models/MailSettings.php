@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\SiteAddress;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
@@ -53,11 +54,12 @@ class MailSettings extends Model
     }
 
     /**
-     * The address email is sent from: the one set here, or "noreply@" the site's own domain.
+     * The address email is sent from: the one set here, or "noreply@" the site's
+     * own domain (from its saved address, not from the visit).
      */
     public function fromAddress(): string
     {
-        return $this->from_address ?: 'noreply@'.preg_replace('/^www\./', '', request()->getHost() ?: 'localhost');
+        return $this->from_address ?: 'noreply@'.preg_replace('/^www\./', '', SiteAddress::host());
     }
 
     /**

@@ -56,6 +56,16 @@ class TopBarTest extends TestCase
             ], false);
     }
 
+    public function test_the_top_bar_cant_hold_links_that_run_code(): void
+    {
+        Theme::current()->update(['top_bar_text' => '[Call](tel:+17605550100) [Click](javascript:alert(1))']);
+
+        $this->get('/about')
+            ->assertOk()
+            ->assertSee('<a href="tel:+17605550100">Call</a>', false)
+            ->assertDontSee('javascript:', false);
+    }
+
     public function test_without_text_there_is_no_top_bar(): void
     {
         $this->get('/about')

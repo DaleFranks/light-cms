@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Entry;
 use App\Models\Form;
 use App\Models\FormSubmission;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
@@ -137,8 +138,43 @@ class FormSubmissionTest extends TestCase
         $this->get('/contact-us')->assertSee('Please wait a minute and try again.');
     }
 
+    public function test_a_form_sent_after_the_session_expired_goes_back_with_the_answers_kept(): void
+    {
+        $this->checkSecurityTokens();
+
+        $this->from('/contact-us')
+            ->post('/forms/contact', ['_form' => 'contact', '_token' => 'expired', 'your_name' => 'Ann', 'email' => 'ann@example.com'])
+            ->assertRedirect(url('/contact-us').'#form-contact');
+
+        $this->assertDatabaseCount('form_submissions', 0);
+        $this->get('/contact-us')
+            ->assertSee('so the form wasn&#039;t sent. Please check your answers and send it again.', false)
+            ->assertSee('value="ann@example.com"', false);
+    }
+
+    public function test_other_pages_with_an_expired_session_still_say_so(): void
+    {
+        $this->checkSecurityTokens();
+
+        $this->post('/setup', ['_token' => 'expired'])->assertStatus(419);
+    }
+
     public function test_an_unknown_form_is_not_found(): void
     {
         $this->post('/forms/nope', ['email' => 'ann@example.com'])->assertNotFound();
+    }
+
+    /**
+     * Check the security token on forms as a real site does; tests normally skip it.
+     */
+    private function checkSecurityTokens(): void
+    {
+        $this->app->instance(PreventRequestForgery::class, new class($this->app, $this->app['encrypter']) extends PreventRequestForgery
+        {
+            protected function runningUnitTests(): bool
+            {
+                return false;
+            }
+        });
     }
 }

@@ -29,7 +29,8 @@ use Illuminate\Support\Str;
  * ending up inside it. Images stay in the line, so text written beside them
  * wraps around them. A
  * shortcode naming something that doesn't exist is left as written, so the
- * mistake shows.
+ * mistake shows. Inside `code` or a fenced code block, shortcodes are shown
+ * as written, so a page can explain how to use them.
  */
 class Markdown
 {
@@ -47,12 +48,30 @@ class Markdown
     private const INLINE_PLACEHOLDER_PATTERN = '/\x{E000}(\d+)\x{E001}/u';
 
     /**
+     * Fenced code blocks (``` or ~~~, closed by the same fence) and `code`
+     * within a paragraph (never across a blank line).
+     */
+    private const CODE_PATTERN = '/^ {0,3}(`{3,}|~{3,})[^\n]*\n.*?^ {0,3}\1[ \t]*$|(`+)(?:(?!\n[ \t]*\n).)+?\2(?!`)/ms';
+
+    private const CODE_PLACEHOLDER_PATTERN = '/\x{E002}(\d+)\x{E003}/u';
+
+    /**
      * @param  bool  $withBlocks  Whether modules and cards may be placed. They can't be placed inside each other.
      */
     public static function toHtml(string $markdown, bool $withBlocks = false): string
     {
         /** @var list<array{kind: string, value: string, original: string, image?: array{file: string, size: ?string, align: ?string, description: ?string}}> $shortcodes */
         $shortcodes = [];
+
+        /** @var list<string> $code */
+        $code = [];
+
+        // Code is set aside so its shortcodes stay as written, then put back for the converter
+        $markdown = preg_replace_callback(self::CODE_PATTERN, function (array $match) use (&$code): string {
+            $code[] = $match[0];
+
+            return "\u{E002}".array_key_last($code)."\u{E003}";
+        }, $markdown);
 
         $markdown = preg_replace_callback(self::MARKDOWN_IMAGE_PATTERN, function (array $match) use (&$shortcodes): string {
             if (preg_match('#^(https?:|data:|//)#i', $match[2]) || Image::nameFromReference($match[2]) === null) {
@@ -88,6 +107,10 @@ class Markdown
 
             return "\n\n<!--shortcode:".array_key_last($shortcodes)."-->\n\n";
         }, $markdown);
+
+        if ($code !== []) {
+            $markdown = preg_replace_callback(self::CODE_PLACEHOLDER_PATTERN, fn (array $match): string => $code[(int) $match[1]], $markdown);
+        }
 
         $html = self::inSiteFolder(Str::markdown($markdown, [
             'html_input' => 'allow',

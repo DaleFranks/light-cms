@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -82,10 +83,15 @@ class SetupController extends Controller
     }
 
     /**
-     * Create (or bring up to date) the database tables.
+     * Create (or bring up to date) the database tables, unless they already
+     * are, so visits to the setup screen (often bots) don't redo the work.
      */
     private static function createTables(): void
     {
+        if (! DatabaseUpdate::isNeeded() && Schema::hasTable('users')) {
+            return;
+        }
+
         Artisan::call('migrate', ['--force' => true]);
         DatabaseUpdate::markApplied();
     }

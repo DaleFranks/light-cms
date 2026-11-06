@@ -13,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use RuntimeException;
 use Tests\TestCase;
 
 class ImageLibraryTest extends TestCase
@@ -56,6 +57,19 @@ class ImageLibraryTest extends TestCase
 
         $this->assertSame('logo-2.png', $image->filename);
         $this->assertSame('copied in by hand', Storage::disk(Image::DISK)->get('images/logo.png'));
+    }
+
+    public function test_a_file_that_isnt_an_image_is_never_stored(): void
+    {
+        try {
+            Image::storeUpload(UploadedFile::fake()->createWithContent('shell.php', '<?php echo "hi";'));
+            $this->fail('A file that isn\'t an image was stored.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('The file isn\'t a JPG, PNG, GIF or WebP image.', $exception->getMessage());
+        }
+
+        $this->assertSame([], Storage::disk(Image::DISK)->allFiles());
+        $this->assertSame(0, Image::query()->count());
     }
 
     public function test_images_are_stored_exactly_as_uploaded(): void

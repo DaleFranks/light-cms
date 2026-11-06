@@ -131,7 +131,8 @@ class Redirect extends Model
      */
     public function follow(Request $request): RedirectResponse
     {
-        $this->forceFill(['hits' => $this->hits + 1, 'last_hit_at' => now()])->saveQuietly();
+        // Counted by the database, so visits arriving together are all counted
+        $this->incrementQuietly('hits', 1, ['last_hit_at' => now()]);
 
         return redirect()->to($this->targetFor($request->path(), (string) $request->getQueryString()), $this->status_code);
     }

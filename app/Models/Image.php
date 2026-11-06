@@ -50,6 +50,8 @@ class Image extends Model
         'image/webp' => 'webp',
     ];
 
+    private const NOT_AN_IMAGE_MESSAGE = 'The file isn\'t a JPG, PNG, GIF or WebP image.';
+
     /**
      * Above this, an image is pointed out as one that may load slowly.
      */
@@ -83,11 +85,16 @@ class Image extends Model
 
     /**
      * Add an uploaded file to the library, exactly as it is, under a name no other image has.
+     *
+     * The upload screens only take images, but the file is checked here too, so
+     * nothing else (such as a script) can ever reach the public uploads folder.
+     *
+     * @throws RuntimeException With a message for the person uploading it.
      */
     public static function storeUpload(UploadedFile $file): self
     {
         $mimeType = (string) $file->getMimeType();
-        $extension = self::TYPES[$mimeType] ?? strtolower($file->getClientOriginalExtension());
+        $extension = self::TYPES[$mimeType] ?? throw new RuntimeException(self::NOT_AN_IMAGE_MESSAGE);
         $filename = self::uniqueFilename(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), $extension);
         $path = $file->storeAs(self::DIRECTORY, $filename, self::DISK);
 
@@ -122,7 +129,7 @@ class Image extends Model
                 ));
             }
         } else {
-            throw new RuntimeException('The new file isn\'t a JPG, PNG, GIF or WebP image.');
+            throw new RuntimeException(self::NOT_AN_IMAGE_MESSAGE);
         }
 
         $dimensions = @getimagesize($file->getRealPath());

@@ -28,6 +28,13 @@ class EntryTest extends TestCase
         );
     }
 
+    public function test_the_excerpt_leaves_out_headings_images_and_shortcodes(): void
+    {
+        $entry = new Entry(['body' => "# Contact us\n\n![Team](team.jpg) Get in touch below.\n\n[form:contact]\n\n[image:map.png|right] [youtube:https://youtu.be/abcdefghijk]\n\nWe reply fast. Usually the same day. Never on Sundays."]);
+
+        $this->assertSame('Get in touch below. We reply fast. Usually the same day.', $entry->excerpt());
+    }
+
     public function test_deleting_a_parent_moves_its_children_to_the_top_level(): void
     {
         $parent = Entry::factory()->create();

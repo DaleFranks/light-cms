@@ -229,11 +229,12 @@ class Theme extends Model
 
     /**
      * The top bar's text as HTML. It may use Markdown for bold text and links,
-     * such as [(760) 555-0100](tel:+17605550100) to call from a phone.
+     * such as [(760) 555-0100](tel:+17605550100) to call from a phone. Like page
+     * content, it can't hold links that run code (javascript: and the like).
      */
     public function topBarHtml(): HtmlString
     {
-        return new HtmlString(Str::inlineMarkdown((string) $this->top_bar_text));
+        return new HtmlString(Str::inlineMarkdown((string) $this->top_bar_text, ['allow_unsafe_links' => false]));
     }
 
     /**

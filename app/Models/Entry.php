@@ -160,7 +160,7 @@ class Entry extends Model
         $markdown = preg_replace([
             '/!\[.*?\]\(.*?\)/',
             '/^#+\s+.*$/m',
-            '/\[(module|card|cards|youtube|image|slider):[^\]]*\]/i',
+            '/\[(module|card|cards|youtube|image|slider|form):[^\]]*\]/i',
         ], '', (string) $this->body);
 
         $text = trim(html_entity_decode(strip_tags(Str::markdown($markdown)), ENT_QUOTES, 'UTF-8'));
@@ -373,6 +373,16 @@ class Entry extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Entry::class, 'parent_id');
+    }
+
+    /**
+     * Whether the entry is published and its publish date has arrived: the
+     * published() scope's test, for an entry that's already loaded.
+     */
+    public function isPublished(): bool
+    {
+        return $this->status === EntryStatus::Published
+            && ($this->published_at === null || $this->published_at->lte(now()));
     }
 
     /**

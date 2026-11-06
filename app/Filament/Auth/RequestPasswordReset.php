@@ -3,6 +3,7 @@
 namespace App\Filament\Auth;
 
 use App\Models\MailSettings;
+use App\SiteAddress;
 use Filament\Auth\Pages\PasswordReset\RequestPasswordReset as BaseRequestPasswordReset;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\ValidationException;
@@ -11,7 +12,8 @@ use Throwable;
 /**
  * The "Forgot password?" screen. The reset link is sent with the site's own
  * Email settings, and if it can't be sent, the admin is told so (and what to
- * do instead) rather than shown an error page.
+ * do instead) rather than shown an error page. The link always leads to the
+ * site's saved address, whatever domain the request claimed to be for.
  */
 class RequestPasswordReset extends BaseRequestPasswordReset
 {
@@ -19,7 +21,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
     {
         try {
             MailSettings::current()->apply();
-            parent::request();
+            SiteAddress::withLinksToSite(fn () => parent::request());
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (Throwable $exception) {

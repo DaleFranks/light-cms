@@ -26,6 +26,18 @@ class RedirectTest extends TestCase
         $this->assertNotNull($redirect->last_hit_at);
     }
 
+    public function test_every_use_is_counted_even_by_copies_loaded_at_the_same_time(): void
+    {
+        Redirect::factory()->create(['from_path' => 'old', 'to' => '/new', 'hits' => 5]);
+        $first = Redirect::findFor('old');
+        $second = Redirect::findFor('old');
+
+        $first->follow(request());
+        $second->follow(request());
+
+        $this->assertSame(7, Redirect::query()->sole()->hits);
+    }
+
     public function test_matching_ignores_capitals_and_slashes_and_keeps_the_query_string(): void
     {
         Redirect::factory()->create(['from_path' => '/About_Us.aspx/', 'to' => '/services']);

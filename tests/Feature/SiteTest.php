@@ -151,6 +151,18 @@ class SiteTest extends TestCase
         $this->get('/news/launch')->assertNotFound();
     }
 
+    public function test_a_post_in_a_blog_scheduled_for_later_is_not_shown_until_then(): void
+    {
+        $blog = Entry::factory()->blog()->published()->create(['slug' => 'news', 'published_at' => now()->addDay()]);
+        Entry::factory()->post($blog)->published()->create(['slug' => 'launch']);
+
+        $this->get('/news/launch')->assertNotFound();
+
+        $this->travel(2)->days();
+
+        $this->get('/news/launch')->assertOk();
+    }
+
     public function test_the_menu_shows_published_entries_in_order_with_children_nested(): void
     {
         Entry::factory()->published()->create(['slug' => 'home', 'title' => 'Home', 'nav_order' => 1]);

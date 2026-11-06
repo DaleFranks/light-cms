@@ -3,8 +3,10 @@
 namespace App;
 
 use App\Http\Middleware\RedirectToHttps;
+use Closure;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\URL;
 use Throwable;
 
 /**
@@ -33,6 +35,45 @@ class SiteAddress
             self::writeToSettingsFile($address);
         } catch (Throwable $exception) {
             report($exception);
+        }
+    }
+
+    /**
+     * The site's own domain, such as "example.com", taken from its saved
+     * address rather than from the visit, which can claim any domain.
+     */
+    public static function host(): string
+    {
+        return (string) parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
+    }
+
+    /**
+     * Run some code with every address it makes starting with the site's saved
+     * address, for links that are emailed. A visit can claim to be for any
+     * domain, and a link built from it, such as a password reset link, would
+     * then lead to someone else's site, which could take what the link carries.
+     *
+     * @template TResult
+     *
+     * @param  Closure(): TResult  $callback
+     * @return TResult
+     */
+    public static function withLinksToSite(Closure $callback): mixed
+    {
+        $address = (string) config('app.url');
+
+        if (! preg_match('#^https?://#i', $address)) {
+            return $callback();
+        }
+
+        URL::forceRootUrl($address);
+        URL::forceScheme(strtolower((string) parse_url($address, PHP_URL_SCHEME)));
+
+        try {
+            return $callback();
+        } finally {
+            URL::forceRootUrl(null);
+            URL::forceScheme(null);
         }
     }
 
