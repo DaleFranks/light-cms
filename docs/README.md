@@ -5,12 +5,13 @@ How each screen in the admin (at `/admin`) works.
 **Start here**
 
 - [Getting started](getting-started.md): the first things to set up, and the Dashboard
-- [Writing content](writing-content.md): Markdown, and the shortcodes that place images, videos, cards, modules, sliders and forms
+- [Writing content](writing-content.md): Markdown, and the shortcodes that place images, file links, videos, cards, modules, sliders and forms
 
 **Content**
 
 - [Pages & Posts](pages-and-posts.md): pages, blogs, posts and the menu
 - [Images](images.md): the image library, and replacing an image
+- [Files](files.md): PDFs, documents, spreadsheets and ZIPs to link to, and replacing a file
 - [Cards and Modules](cards-and-modules.md): reusable boxes and sections, and the footer
 - [Sliders](sliders.md): rotating images
 - [Forms](forms.md): contact forms, newsletter sign-ups and their submissions

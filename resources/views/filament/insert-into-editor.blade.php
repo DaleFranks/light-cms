@@ -1,4 +1,4 @@
-{{-- Puts what the Insert image popup chose at the cursor in the content editor it was opened from. --}}
+{{-- Puts what the Insert image or Insert file popup chose at the cursor in the content editor it was opened from. --}}
 <script>
     window.addEventListener('insert-into-editor', (event) => {
         const codeMirror = document.getElementById(event.detail.editorId)?._editor?.codemirror;

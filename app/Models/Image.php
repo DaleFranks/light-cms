@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsedInContent;
 use Database\Factories\ImageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +34,8 @@ class Image extends Model
 {
     /** @use HasFactory<ImageFactory> */
     use HasFactory;
+
+    use UsedInContent;
 
     public const DISK = 'uploads';
 
@@ -268,17 +271,7 @@ class Image extends Model
      */
     public function usages(): Collection
     {
-        $pattern = '/(?<![a-z0-9._-])'.preg_quote($this->filename, '/').'(?!\.?[a-z0-9_-])/i';
-        $uses = fn (Model $model): bool => (bool) preg_match($pattern, (string) $model->getAttribute('body'));
-        $containing = fn (string $model) => $model::query()->where('body', 'like', '%'.$this->filename.'%');
-
-        return collect()
-            ->merge($containing(Entry::class)->get(['id', 'type', 'title', 'body'])->filter($uses)
-                ->map(fn (Entry $entry): string => $entry->type->getLabel().': '.$entry->title))
-            ->merge($containing(Module::class)->get(['id', 'name', 'body'])->filter($uses)
-                ->map(fn (Module $module): string => 'Module: '.$module->name))
-            ->merge($containing(Card::class)->get(['id', 'name', 'body'])->filter($uses)
-                ->map(fn (Card $card): string => 'Card: '.$card->name))
+        return $this->contentUsing($this->filename)
             ->merge(Slider::query()->whereRelation('slides', 'image_id', $this->id)->pluck('name')
                 ->map(fn (string $name): string => 'Slider: '.$name))
             ->values();

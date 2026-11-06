@@ -157,11 +157,18 @@ class Entry extends Model
      */
     public function excerpt(): string
     {
+        // A file link reads as its text, e.g. "Download our menu", so the sentence stays whole
+        $markdown = preg_replace_callback('/\[file:([^\]]+)\]/i', function (array $match): string {
+            $options = Markdown::fileOptions($match[1]);
+
+            return $options['text'] ?? $options['file'];
+        }, (string) $this->body);
+
         $markdown = preg_replace([
             '/!\[.*?\]\(.*?\)/',
             '/^#+\s+.*$/m',
             '/\[(module|card|cards|youtube|image|slider|form):[^\]]*\]/i',
-        ], '', (string) $this->body);
+        ], '', $markdown);
 
         $text = trim(html_entity_decode(strip_tags(Str::markdown($markdown)), ENT_QUOTES, 'UTF-8'));
         $sentences = preg_split('/(?<=[.?!])\s+/u', $text) ?: [];

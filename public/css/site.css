@@ -876,6 +876,14 @@ body.nav-collapsed .dropdown-arrow {
     }
 }
 
+/* A file link's type and size, e.g. "(PDF, 240 KB)": a little quieter than the
+   text around it, on any background */
+.file-details {
+    font-size: 0.9em;
+    opacity: 0.75;
+    white-space: nowrap;
+}
+
 /* Clearfix for floated images */
 .prose::after {
     content: "";

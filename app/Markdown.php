@@ -6,6 +6,7 @@ use App\Http\Middleware\UseSiteFolder;
 use App\Models\Card;
 use App\Models\Form;
 use App\Models\Image;
+use App\Models\LibraryFile;
 use App\Models\Module;
 use App\Models\Slider;
 use Illuminate\Support\Collection;
@@ -14,6 +15,7 @@ use Illuminate\Support\Str;
 /**
  * Turns Markdown into HTML, filling in shortcodes:
  * - [image:file|width|align|description] places an image from the library (or from a full URL)
+ * - [file:name|link text|details] links to a file from the file library, with its type and size after "details"
  * - [youtube:url|width|align] embeds a YouTube video
  * - [form:slug] places a form built on the Forms screen
  * - [module:slug], [card:slug] and [cards: slug-1, slug-2] place modules and cards (pages only)
@@ -34,7 +36,7 @@ use Illuminate\Support\Str;
  */
 class Markdown
 {
-    private const SHORTCODE_PATTERN = '/\[(image|youtube|form|module|card|cards|slider):([^\]]+)\]/i';
+    private const SHORTCODE_PATTERN = '/\[(image|file|youtube|form|module|card|cards|slider):([^\]]+)\]/i';
 
     private const MARKDOWN_IMAGE_PATTERN = '/!\[([^\]]*)\]\(\s*<?([^\s)>]+)>?(?:\s+(?:"([^"]*)"|\'([^\']*)\'))?\s*\)/';
 
@@ -91,7 +93,7 @@ class Markdown
         $markdown = preg_replace_callback(self::SHORTCODE_PATTERN, function (array $match) use (&$shortcodes, $withBlocks): string {
             $kind = strtolower($match[1]);
 
-            if (! $withBlocks && ! in_array($kind, ['image', 'youtube', 'form'], true)) {
+            if (! $withBlocks && ! in_array($kind, ['image', 'file', 'youtube', 'form'], true)) {
                 return $match[0];
             }
 
@@ -99,6 +101,12 @@ class Markdown
 
             if ($kind === 'image') {
                 $shortcodes[] = [...$shortcode, 'image' => self::imageOptions($shortcode['value'])];
+
+                return self::inlinePlaceholder(array_key_last($shortcodes));
+            }
+
+            if ($kind === 'file') {
+                $shortcodes[] = $shortcode;
 
                 return self::inlinePlaceholder(array_key_last($shortcodes));
             }
@@ -128,8 +136,9 @@ class Markdown
         $sliders = self::load(Slider::class, $shortcodes, ['slider']);
         $forms = self::load(Form::class, $shortcodes, ['form']);
         $images = self::loadImages($shortcodes);
+        $files = self::loadFiles($shortcodes);
 
-        return preg_replace_callback(self::PLACEHOLDER_PATTERN, function (array $match) use ($shortcodes, $modules, $cards, $sliders, $forms, $images): string {
+        return preg_replace_callback(self::PLACEHOLDER_PATTERN, function (array $match) use ($shortcodes, $modules, $cards, $sliders, $forms, $images, $files): string {
             $shortcode = $shortcodes[(int) $match[1]] ?? null;
 
             if ($shortcode === null) {
@@ -138,6 +147,7 @@ class Markdown
 
             $html = match ($shortcode['kind']) {
                 'image' => self::image($shortcode['image'], $images),
+                'file' => self::fileLink($shortcode['value'], $files),
                 'youtube' => self::youtube($shortcode['value']),
                 'module' => $modules->get(self::slugs($shortcode['value'])[0] ?? '')?->html(),
                 'card' => $cards->get(self::slugs($shortcode['value'])[0] ?? '')?->html(),
@@ -150,7 +160,7 @@ class Markdown
                 return $html;
             }
 
-            return $shortcode['kind'] === 'image' ? e($shortcode['original']) : '<p>'.e($shortcode['original']).'</p>';
+            return in_array($shortcode['kind'], ['image', 'file'], true) ? e($shortcode['original']) : '<p>'.e($shortcode['original']).'</p>';
         }, $html);
     }
 
@@ -216,6 +226,70 @@ class Markdown
         }
 
         return Image::query()->whereIn('filename', $filenames)->get()->keyBy('filename')->toBase();
+    }
+
+    /**
+     * Load, in one query, every library file the shortcodes name.
+     *
+     * @param  list<array{kind: string, value: string, original: string}>  $shortcodes
+     * @return Collection<string, LibraryFile>
+     */
+    private static function loadFiles(array $shortcodes): Collection
+    {
+        $filenames = collect($shortcodes)
+            ->filter(fn (array $shortcode): bool => $shortcode['kind'] === 'file')
+            ->map(fn (array $shortcode): ?string => LibraryFile::nameFromReference(self::fileOptions($shortcode['value'])['file']))
+            ->filter()
+            ->unique();
+
+        if ($filenames->isEmpty()) {
+            return collect();
+        }
+
+        return LibraryFile::query()->whereIn('filename', $filenames)->get()->keyBy('filename')->toBase();
+    }
+
+    /**
+     * The parts of [file:name|link text|details]. After the name, "details"
+     * asks for the file's type and size; anything else is the link's text.
+     *
+     * @return array{file: string, text: ?string, details: bool}
+     */
+    public static function fileOptions(string $value): array
+    {
+        $parts = array_map(trim(...), explode('|', $value));
+        $options = ['file' => (string) array_shift($parts), 'text' => null, 'details' => false];
+
+        foreach ($parts as $part) {
+            if (strtolower($part) === 'details') {
+                $options['details'] = true;
+            } elseif ($part !== '') {
+                $options['text'] = $part;
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * A link to a library file, its text being the one given or else the file's
+     * name, followed by its type and size when asked for. The size is looked up
+     * as the page is shown, so it stays right when the file is replaced.
+     *
+     * @param  Collection<string, LibraryFile>  $files
+     */
+    private static function fileLink(string $value, Collection $files): ?string
+    {
+        $options = self::fileOptions($value);
+        $file = $files->get((string) LibraryFile::nameFromReference($options['file']));
+
+        if ($file === null) {
+            return null;
+        }
+
+        $link = '<a href="'.e($file->url()).'">'.e($options['text'] ?? $file->filename).'</a>';
+
+        return $options['details'] ? $link.' <span class="file-details">('.e($file->details()).')</span>' : $link;
     }
 
     /**

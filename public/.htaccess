@@ -5,7 +5,7 @@
 
     RewriteEngine On
 
-    # Uploads are only ever images, so nothing in uploads/ may run as a script
+    # Uploads are only ever images and library files, so nothing in uploads/ may run as a script
     RewriteRule ^uploads/.*\.(php\d?|phtml|phar|pl|py|cgi|sh)$ - [F,L,NC]
 
     # Handle Authorization Header
@@ -25,4 +25,10 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Browsers take each uploaded file as the type its name says (a .txt as text,
+# never as a web page), as they already do for the pages the CMS sends
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
 </IfModule>

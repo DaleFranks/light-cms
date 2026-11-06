@@ -2,11 +2,11 @@
 
 A lightweight, self-contained content management system for anyone who wants a website that's quick to set up and easy to look after.
 
-Everything lives in the site's own folder: the content in a single SQLite database file, and images in an `uploads` folder. There's no database server or other outside service to connect to. It runs on ordinary shared hosting (Apache and cPanel), with no command line and no settings files to edit.
+Everything lives in the site's own folder: the content in a single SQLite database file, and images and files in an `uploads` folder. There's no database server or other outside service to connect to. It runs on ordinary shared hosting (Apache and cPanel), with no command line and no settings files to edit.
 
 - **Pages, blogs and posts** written in Markdown, with a menu built from the pages
 - **Cards, modules and sliders** to build up pages without writing HTML
-- **An image library** where images can be replaced without touching the pages that use them, embedded YouTube videos, and **forms** with stored submissions and email notifications
+- **Image and file libraries** where images, PDFs and other files can be replaced without touching the pages that use them, embedded YouTube videos, and **forms** with stored submissions and email notifications
 - **A Theme screen** for the logo, colors, a curated list of Google Fonts, headings, header, footer and an optional top bar, with no template code to edit
 - **Redirects** (added automatically when a page moves), an automatic **sitemap** and `robots.txt`
 - **Several admins**, optional **two-step login**, password reset by email, and HTTPS enforced on HTTPS sites

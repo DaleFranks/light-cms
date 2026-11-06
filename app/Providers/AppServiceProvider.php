@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Filament\InsertFileAction;
 use App\Filament\InsertImageAction;
 use App\Http\Controllers\FormSubmissionController;
 use App\Models\Entry;
@@ -31,13 +32,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Every content editor adds images through the Insert image popup, so they go
-        // through the library. Without its button, the editor also takes no images
-        // dragged or pasted in.
+        // Every content editor adds images and file links through the Insert image and
+        // Insert file popups, so they go through the libraries. Without its own
+        // button, the editor also takes no images dragged or pasted in.
         MarkdownEditor::configureUsing(function (MarkdownEditor $editor): void {
             $editor
                 ->disableToolbarButtons(['attachFiles'])
-                ->hintAction(InsertImageAction::make());
+                ->hintActions([InsertImageAction::make(), InsertFileAction::make()]);
         });
 
         // A visitor may send any one form five times a minute. Past that, the

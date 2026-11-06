@@ -51,6 +51,24 @@ Places an image from the [image library](images.md). After the file name, in any
 
 A full image address (`https://...`) works too. Ordinary Markdown images, `![Our team](team.jpg)`, also find their file in the library.
 
+### Files
+
+To link to a file, such as a PDF menu or a price list, put the cursor where you want the link and click **Insert file**, beside Insert image. Then:
+
+- choose a file from the **File library**, or **Upload** a new one to it
+- give the link its **text**, such as "Our menu". Left empty, the link shows the file's name.
+- choose whether to **show the type and size** after the link, such as "Our menu (PDF, 240 KB)"
+
+You can also type shortcodes yourself:
+
+```
+[file:menu.pdf]
+[file:menu.pdf|Our menu]
+[file:menu.pdf|Our menu|details]
+```
+
+Links to a file from the [file library](files.md). After the file name, in any order: the link's **text**, and `details` to show the file's type and size after it. The size is looked up each time the page is shown, so it stays right when the file is replaced. Works in pages, posts, cards and modules.
+
 ### YouTube videos
 
 ```
