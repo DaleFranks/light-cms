@@ -11,6 +11,8 @@ The name comes from Arthur C. Clarke's novel *Rendezvous with Rama* (1973). In t
 
 Like Clarke's Rama, which inspired the name, RamaSite is a complete world of its own.
 
+What it does:
+
 - **Pages, blogs and posts** written in Markdown, with a menu built from the pages
 - **Cards, modules and sliders** to build up pages without writing HTML
 - **Image and file libraries** where images, PDFs and other files can be replaced without touching the pages that use them, embedded YouTube videos, and **forms** with stored submissions and email notifications
