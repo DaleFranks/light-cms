@@ -54,11 +54,14 @@ class Entry extends Model
     public const DEFAULT_POSTS_PER_PAGE = 9;
 
     /**
-     * Paths used by the app itself, which no entry may take.
+     * Paths no entry may take: those used by the app itself, and the folders
+     * in public/, which the web server answers before the CMS sees the visit.
+     * The site's top-level folders aren't here: the root .htaccess sends
+     * those addresses to the CMS.
      *
      * @var list<string>
      */
-    public const RESERVED_PATHS = ['admin', 'filament', 'forms', 'livewire', 'setup', 'storage', 'up', 'uploads'];
+    public const RESERVED_PATHS = ['admin', 'css', 'filament', 'fonts', 'forms', 'js', 'livewire', 'setup', 'storage', 'up', 'uploads'];
 
     /** @use HasFactory<EntryFactory> */
     use HasFactory;

@@ -7,8 +7,17 @@
 
 Options -Indexes
 
+# A page may share its name with one of the site's folders (such as
+# /resources): the visit goes to the page, not to the folder.
+DirectorySlash Off
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteOptions AllowNoSlash
+
+    # /about/ goes to /about
+    RewriteCond %{REQUEST_URI} ^(.+)/$
+    RewriteRule ^(.+)/$ %1 [L,R=301]
 
     # /about is answered by public/index.php, /css/site.css by public/css/site.css
     RewriteRule ^(.*)$ public/$1 [L]

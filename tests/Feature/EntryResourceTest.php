@@ -133,6 +133,60 @@ class EntryResourceTest extends TestCase
             ->assertHasFormErrors(['slug']);
     }
 
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function publicFolderNames(): array
+    {
+        return [
+            'css folder' => ['css'],
+            'fonts folder' => ['fonts'],
+            'below a folder' => ['js/tools'],
+        ];
+    }
+
+    #[DataProvider('publicFolderNames')]
+    public function test_a_page_cannot_take_the_name_of_a_folder_in_public(string $slug): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Clash',
+                'slug' => $slug,
+                'type' => EntryType::Page->value,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['slug']);
+
+        $this->assertDatabaseMissing('entries', ['path' => $slug]);
+    }
+
+    public function test_every_folder_in_public_is_reserved(): void
+    {
+        foreach (glob(public_path('*'), GLOB_ONLYDIR) as $folder) {
+            $this->assertContains(basename($folder), Entry::RESERVED_PATHS, "The folder {$folder} isn't reserved.");
+        }
+    }
+
+    public function test_a_page_can_share_its_name_with_a_top_level_folder(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(CreateEntry::class)
+            ->fillForm([
+                'title' => 'Resources',
+                'slug' => 'resources',
+                'type' => EntryType::Page->value,
+                'status' => EntryStatus::Draft->value,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('entries', ['path' => 'resources']);
+    }
+
     public function test_a_page_slug_can_contain_slashes(): void
     {
         $this->actingAs(User::factory()->create());

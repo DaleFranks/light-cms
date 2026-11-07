@@ -39,6 +39,29 @@ Images already in your pages keep working, however they were added.
 - **Shortcodes inside code** (`` `[form:contact]` `` or a code block) are now shown as written instead of being filled in, so a page can explain how to use them. A shortcode meant to work shouldn't be in backticks.
 - **A form sent after its page was left open a long time** goes back to the form with the visitor's answers kept and a message to send it again, instead of showing a "Page Expired" error.
 
+## What changes after upgrading to 0.9.0
+
+- **Addresses ending in a slash** (`/about/`) now go to the page (`/about`) instead of a "not found" page.
+- **Pages named like one of the CMS's folders** (such as `resources`, `app` or `docs`) now work.
+
+Both come from the `.htaccess` file in the site's folder. If you kept your own `.htaccess` rather than uploading the release's, add these lines to it. Put the first two just above `<IfModule mod_rewrite.c>`:
+
+```apache
+# A page may share its name with one of the site's folders (such as
+# /resources): the visit goes to the page, not to the folder.
+DirectorySlash Off
+```
+
+and the rest just above the line `RewriteRule ^(.*)$ public/$1 [L]`:
+
+```apache
+    RewriteOptions AllowNoSlash
+
+    # /about/ goes to /about
+    RewriteCond %{REQUEST_URI} ^(.+)/$
+    RewriteRule ^(.+)/$ %1 [L,R=301]
+```
+
 ## The database update
 
 Some versions add something to the database, such as a new setting. Each of those changes is a file in `database/migrations/`; the site keeps a note of which ones it has applied. On the first visit after an upgrade, if there are new ones, the CMS:

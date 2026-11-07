@@ -19,7 +19,7 @@ Social media sites remember a link's preview once they've seen it. After changin
 
 The page with the slug **`home`** is the home page, shown at the site's main address.
 
-Some addresses are used by the CMS itself and can't be taken: `admin`, `setup`, `uploads`, `forms` and a few others.
+Some addresses are used by the CMS itself and can't be taken: `admin`, `setup`, `uploads`, `forms` and a few others. Neither can `css`, `fonts` and `js`, which are folders the web server answers itself.
 
 ## Publishing
 
