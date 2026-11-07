@@ -31,7 +31,7 @@ class SitemapController extends Controller
 
         foreach ($entries as $entry) {
             $xml .= "    <url>\n"
-                .'        <loc>'.e($entry->url())."</loc>\n"
+                .'        <loc>'.e($entry->canonicalUrl())."</loc>\n"
                 .'        <lastmod>'.$entry->updated_at->toAtomString()."</lastmod>\n"
                 ."    </url>\n";
         }

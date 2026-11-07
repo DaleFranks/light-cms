@@ -6,6 +6,7 @@ use App\EntryLayout;
 use App\EntryStatus;
 use App\EntryType;
 use App\Markdown;
+use App\SiteAddress;
 use Database\Factories\EntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -145,11 +146,25 @@ class Entry extends Model
     }
 
     /**
-     * The address of a blog's RSS feed.
+     * The entry's one true address, for search engines, sharing and feeds:
+     * the same as url(), but on the site's main domain (see
+     * SiteAddress::canonicalRoot()). The home page's ends in a slash, which a
+     * site in a folder needs ("/site" is redirected to "/site/"). A blog's
+     * later pages keep their number.
+     */
+    public function canonicalUrl(int $page = 1): string
+    {
+        $address = SiteAddress::canonicalRoot().'/'.($this->path === self::HOME_PATH ? '' : $this->path);
+
+        return $page > 1 ? $address.'?page='.$page : $address;
+    }
+
+    /**
+     * The address of a blog's RSS feed, on the site's main domain.
      */
     public function feedUrl(): string
     {
-        return route('feed', ['blogPath' => $this->path]);
+        return SiteAddress::canonicalRoot().'/'.$this->path.'/feed.xml';
     }
 
     /**

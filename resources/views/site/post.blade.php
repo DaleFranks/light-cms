@@ -5,6 +5,7 @@
     :share-image="$entry->shareImage()"
     share-type="article"
     :layout="$entry->layout"
+    :canonical-url="$entry->canonicalUrl()"
     :preview-notice="$previewNotice"
     :edit-url="$editUrl"
     :current-path="$entry->blog->path"

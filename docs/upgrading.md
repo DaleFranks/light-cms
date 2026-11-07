@@ -44,6 +44,7 @@ Images already in your pages keep working, however they were added.
 - **Addresses ending in a slash** (`/about/`) now go to the page (`/about`) instead of a "not found" page.
 - **Pages named like one of the CMS's folders** (such as `resources`, `app` or `docs`) now work.
 - **RSS feeds**: each published blog now has one, at its address followed by `/feed.xml`. See [Pages and posts](pages-and-posts.md#rss-feed).
+- **Canonical addresses**: every page now tells search engines its one true address, on the domain the site was set up on (with or without `www.`, as set up). The sitemap, RSS feeds and social media links use it too.
 - **Preview**: a draft or scheduled page or post can be seen as visitors will see it, by anyone signed in to the admin. Use **Preview** on its edit screen. See [Pages and posts](pages-and-posts.md#previewing).
 
 The first two of these come from the `.htaccess` file in the site's folder. If you kept your own `.htaccess` rather than uploading the release's, add these lines to it. Put this just above `<IfModule mod_rewrite.c>`:

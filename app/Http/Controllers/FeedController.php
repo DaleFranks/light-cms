@@ -51,7 +51,7 @@ class FeedController extends Controller
 
         $items = $posts->map(fn (Entry $post): array => [
             'title' => self::xmlText($post->title),
-            'url' => $post->url(),
+            'url' => $post->canonicalUrl(),
             'date' => ($post->published_at ?? $post->created_at)->toRssString(),
             'description' => self::xmlText(
                 ($images->has($post->id) ? '<p><img src="'.e($images->get($post->id)).'" alt=""></p>' : '')
@@ -61,7 +61,7 @@ class FeedController extends Controller
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n".view('site.feed', [
             'title' => self::xmlText($blog->title.' | '.Theme::current()->site_name),
-            'url' => $blog->url(),
+            'url' => $blog->canonicalUrl(),
             'feedUrl' => $blog->feedUrl(),
             'description' => self::xmlText(filled($blog->meta_description)
                 ? $blog->meta_description

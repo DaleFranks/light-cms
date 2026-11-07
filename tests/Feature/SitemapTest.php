@@ -22,7 +22,7 @@ class SitemapTest extends TestCase
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
             ->assertSee('<?xml version="1.0" encoding="UTF-8"?>', false)
             ->assertSeeInOrder([
-                '<loc>'.url('/').'</loc>',
+                '<loc>'.url('/').'/</loc>',
                 '<lastmod>2026-10-01T12:00:00+00:00</lastmod>',
                 '<loc>'.url('articles').'</loc>',
                 '<loc>'.url('articles/first-post').'</loc>',

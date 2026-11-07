@@ -48,6 +48,32 @@ class SiteAddress
     }
 
     /**
+     * The start of the address search engines are told is a page's one true
+     * address, such as "https://example.com", or "https://example.com/site"
+     * for a site in a folder.
+     *
+     * The scheme and domain are the saved address's when the visit is to the
+     * same domain, with or without "www.", so both forms point to one. A
+     * visit to another domain keeps its own, so a site that moved to a new
+     * domain without its saved address being updated still points to itself.
+     */
+    public static function canonicalRoot(): string
+    {
+        $request = request();
+        $saved = (string) config('app.url');
+        $savedScheme = strtolower((string) parse_url($saved, PHP_URL_SCHEME));
+        $savedHost = strtolower((string) parse_url($saved, PHP_URL_HOST));
+
+        if (! in_array($savedScheme, ['http', 'https'], true) || self::withoutWww($savedHost) !== self::withoutWww($request->getHost())) {
+            return $request->root();
+        }
+
+        $port = parse_url($saved, PHP_URL_PORT);
+
+        return $savedScheme.'://'.$savedHost.($port ? ':'.$port : '').rtrim($request->getBaseUrl(), '/');
+    }
+
+    /**
      * Run some code with every address it makes starting with the site's saved
      * address, for links that are emailed. A visit can claim to be for any
      * domain, and a link built from it, such as a password reset link, would
@@ -75,6 +101,11 @@ class SiteAddress
             URL::forceRootUrl(null);
             URL::forceScheme(null);
         }
+    }
+
+    private static function withoutWww(string $host): string
+    {
+        return (string) preg_replace('/^www\./i', '', strtolower($host));
     }
 
     private static function writeToSettingsFile(string $address): void

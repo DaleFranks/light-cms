@@ -7,6 +7,7 @@
     'shareImage' => null,
     'shareType' => 'website',
     'previewNotice' => null,
+    'canonicalUrl' => null,
     'editUrl' => null,
 ])
 
@@ -26,6 +27,8 @@
     <title>{{ $title }} | {{ $theme->site_name }}</title>
     @if ($previewNotice)
         <meta name="robots" content="noindex, nofollow">
+    @elseif ($canonicalUrl)
+        <link rel="canonical" href="{{ $canonicalUrl }}">
     @endif
     @if (filled($description))
         <meta name="description" content="{{ $description }}">
@@ -39,7 +42,7 @@
         <meta property="og:description" content="{{ $description }}">
     @endif
     <meta property="og:type" content="{{ $shareType }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $canonicalUrl ?? url()->current() }}">
     <meta property="og:site_name" content="{{ $theme->site_name }}">
     @if ($sharePicture)
         <meta property="og:image" content="{{ $sharePicture['url'] }}">
