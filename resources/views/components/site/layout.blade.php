@@ -12,6 +12,9 @@
 ])
 
 @php
+    // Visitors are tracked, but not previews or anyone signed in to the admin
+    $tracksThisVisit = $analytics->tracksThisVisit() && ! $previewNotice;
+
     // The picture for link previews on social media: the page's own image, or else the logo
     $sharePicture = $shareImage ?? ($theme->logoUrl()
         ? ['url' => request()->getSchemeAndHttpHost().$theme->logoUrl(), 'width' => null, 'height' => null]
@@ -25,6 +28,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{{ $title }} | {{ $theme->site_name }}</title>
+    <x-site.analytics :settings="$analytics" :tracks="$tracksThisVisit" place="head" />
     @if ($previewNotice)
         <meta name="robots" content="noindex, nofollow">
     @elseif ($canonicalUrl)
@@ -72,8 +76,10 @@
         }
         {!! $theme->safeCustomCss() !!}
     </style>
+    <x-site.analytics :settings="$analytics" :tracks="$tracksThisVisit" place="head-end" />
 </head>
 <body class="{{ $theme->bodyClasses() }} layout-{{ $layout->value }}{{ $previewNotice ? ' has-preview-bar' : '' }}">
+    <x-site.analytics :settings="$analytics" :tracks="$tracksThisVisit" place="body-start" />
     <header class="site-header">
         @if ($theme->hasTopBar())
             <div class="top-bar theme-{{ $theme->top_bar_style->value }} align-{{ $theme->top_bar_alignment->value }}">
@@ -189,5 +195,6 @@
             window.addEventListener('scroll', scrollHeader, { passive: true });
         });
     </script>
+    <x-site.analytics :settings="$analytics" :tracks="$tracksThisVisit" place="body-end" />
 </body>
 </html>

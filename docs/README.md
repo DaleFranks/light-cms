@@ -21,6 +21,7 @@ How each screen in the admin (at `/admin`) works.
 
 - [Theme](theme.md): logo, colors, fonts, headings, header, top bar, footer and layout
 - [Email](email.md): how the site sends email
+- [Analytics & Verification](analytics.md): Google Analytics, Tag Manager, Meta Pixel, Search Console and Bing verification, and code from any other service
 - [Users and security](users-and-security.md): admin accounts, your profile, two-step login and passwords
 - [Backup](backup.md): downloading a backup and restoring one
 - [Upgrading](upgrading.md): installing a new version, what looks different after upgrading, the automatic database update, and what to do if it can't run

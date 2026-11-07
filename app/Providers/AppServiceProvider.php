@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Filament\InsertFileAction;
 use App\Filament\InsertImageAction;
 use App\Http\Controllers\FormSubmissionController;
+use App\Models\AnalyticsSettings;
 use App\Models\Entry;
 use App\Models\Form;
 use App\Models\Module;
@@ -60,6 +61,8 @@ class AppServiceProvider extends ServiceProvider
                 'menu' => Entry::menu(),
                 'footer' => Module::footer(),
                 'feeds' => Entry::blogsWithFeeds(),
+                // Empty while a failed database update leaves the table missing
+                'analytics' => rescue(fn (): AnalyticsSettings => AnalyticsSettings::current(), fn (): AnalyticsSettings => new AnalyticsSettings, report: false),
             ]);
         });
     }
