@@ -2,9 +2,14 @@
 
 **A little world of your own.**
 
-A lightweight, self-contained content management system for anyone who wants a website that's quick to set up and easy to look after.
+The name comes from Arthur C. Clarke's novel *Rendezvous with Rama* (1973). In the book, Rama is a sealed, cylindrical, self-contained world that carries everything it needs inside it. That matches the product's core design:
 
-Everything lives in the site's own folder: the content in a single SQLite database file, and images and files in an `uploads` folder. There's no database server or other outside service to connect to. It runs on ordinary shared hosting (Apache and cPanel), with no command line and no settings files to edit.
+- All content lives in a single SQLite database file, and images go in an `uploads` folder inside the site.
+- There is no database server, outside service, command line or settings file to edit.
+- Installation means uploading one release zip to ordinary shared hosting (Apache with cPanel) and completing the setup screen.
+- Backups, database updates after an upgrade, the sitemap, redirects and theming are all handled from inside the admin.
+
+Like Clarke's Rama, which inspired the name, RamaSite is a complete world of its own.
 
 - **Pages, blogs and posts** written in Markdown, with a menu built from the pages
 - **Cards, modules and sliders** to build up pages without writing HTML
@@ -47,14 +52,6 @@ Your pages, images, settings and accounts aren't in the release zip, so uploadin
 ## Documentation
 
 How each part of the admin works: **[docs](docs/README.md)**.
-
-## About the name
-
-Inspired by Arthur C. Clarke's *Rendezvous with Rama*, RamaSite takes its name from a remarkable self-contained world.
-
-Your website deserves the same independence. RamaSite keeps everything in one compact folder: content, themes, images, forms, and more.
-
-No database server. No command line. No complicated infrastructure. Upload it to ordinary shared hosting and you have a little world of your own, ready to run.
 
 ## License
 
