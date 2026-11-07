@@ -1,4 +1,4 @@
-# Builds the Light CMS download whenever a version tag (such as v1.0.0) is pushed.
+# Builds the RamaSite download whenever a version tag (such as v1.0.0) is pushed.
 # Tags with a hyphen (such as v0.1.0-alpha) are published as pre-releases.
 #
 # The zip holds everything a site needs, including the vendor folder, so a site
@@ -46,15 +46,15 @@ jobs:
       - name: Build the site folder
         run: |
           mkdir build
-          git archive --format=tar --prefix=light-cms/ "$GITHUB_REF_NAME" | tar -x -C build
-          cd build/light-cms
+          git archive --format=tar --prefix=ramasite/ "$GITHUB_REF_NAME" | tar -x -C build
+          cd build/ramasite
           echo "$GITHUB_REF_NAME" > VERSION
           composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
 
       - name: Zip it
         run: |
           cd build
-          zip -qr "../light-cms-$GITHUB_REF_NAME.zip" light-cms
+          zip -qr "../ramasite-$GITHUB_REF_NAME.zip" ramasite
 
       - name: Publish the release
         env:
@@ -69,8 +69,8 @@ jobs:
 
           # GitHub also lists "Source code" downloads on every release, which lack the
           # vendor folder and can't run without Composer, so the notes say which to use.
-          gh release create "$GITHUB_REF_NAME" "light-cms-$GITHUB_REF_NAME.zip" \
-            --title "Light CMS $GITHUB_REF_NAME" \
-            --notes "**Download light-cms-$GITHUB_REF_NAME.zip below, not the Source code files.** It includes everything the site needs; the Source code files don't and won't run on their own." \
+          gh release create "$GITHUB_REF_NAME" "ramasite-$GITHUB_REF_NAME.zip" \
+            --title "RamaSite $GITHUB_REF_NAME" \
+            --notes "**Download ramasite-$GITHUB_REF_NAME.zip below, not the Source code files.** It includes everything the site needs; the Source code files don't and won't run on their own." \
             --generate-notes \
             $prerelease

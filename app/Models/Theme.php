@@ -53,7 +53,7 @@ class Theme extends Model
     use HasFactory;
 
     /**
-     * The original Light CMS look.
+     * The original look.
      *
      * @var array<string, mixed>
      */

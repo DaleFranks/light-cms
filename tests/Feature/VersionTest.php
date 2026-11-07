@@ -19,7 +19,7 @@ class VersionTest extends TestCase
         parent::setUp();
 
         // A folder of its own for the VERSION file, so the real one is never touched
-        $this->basePath = sys_get_temp_dir().'/light-cms-version-'.bin2hex(random_bytes(4));
+        $this->basePath = sys_get_temp_dir().'/ramasite-version-'.bin2hex(random_bytes(4));
         File::ensureDirectoryExists($this->basePath);
         File::copy(base_path('composer.json'), $this->basePath.'/composer.json');
         $this->app->setBasePath($this->basePath);
@@ -37,7 +37,7 @@ class VersionTest extends TestCase
         File::put($this->basePath.'/VERSION', "v0.4.0-alpha\n");
 
         $this->assertSame('v0.4.0-alpha', Version::current());
-        $this->assertSame('Light CMS v0.4.0-alpha', Version::label());
+        $this->assertSame('RamaSite v0.4.0-alpha', Version::label());
     }
 
     public function test_a_copy_not_from_a_release_is_the_development_version(): void
@@ -50,7 +50,7 @@ class VersionTest extends TestCase
         File::put($this->basePath.'/VERSION', "v0.4.0-alpha\n");
         $this->actingAs(User::factory()->create());
 
-        $this->get('/admin')->assertOk()->assertSee('Light CMS v0.4.0-alpha');
+        $this->get('/admin')->assertOk()->assertSee('RamaSite v0.4.0-alpha');
     }
 
     public function test_each_version_compiles_its_templates_into_a_folder_of_its_own(): void

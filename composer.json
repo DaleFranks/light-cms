@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "dalefranks/light-cms",
+    "name": "dalefranks/ramasite",
     "type": "project",
     "description": "A lightweight, self-contained CMS: everything lives in the site's own folder, with no database server to connect to.",
     "keywords": ["cms", "content management", "laravel", "filament", "sqlite", "shared hosting"],

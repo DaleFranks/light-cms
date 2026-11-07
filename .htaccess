@@ -1,4 +1,4 @@
-# Light CMS on shared hosting
+# RamaSite on shared hosting
 #
 # When the whole site is uploaded into the web root (such as public_html),
 # this sends every request into the public/ folder, which is the only part of

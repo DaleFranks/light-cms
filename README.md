@@ -1,4 +1,6 @@
-# Light CMS
+# RamaSite
+
+**A little world of your own.**
 
 A lightweight, self-contained content management system for anyone who wants a website that's quick to set up and easy to look after.
 
@@ -13,9 +15,9 @@ Everything lives in the site's own folder: the content in a single SQLite databa
 - **Several admins**, optional **two-step login**, password reset by email, and HTTPS enforced on HTTPS sites
 - **One-click backups**, and the database updates itself after an upgrade
 
-![The Insert image popup, listing images from the library with thumbnails](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/insert-image.png)
+![The Insert image popup, listing images from the library with thumbnails](https://raw.githubusercontent.com/DaleFranks/ramasite/main/docs/screenshots/insert-image.png)
 
-![The Theme screen's Fonts tab, with a live sample under each font](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/fonts.png)
+![The Theme screen's Fonts tab, with a live sample under each font](https://raw.githubusercontent.com/DaleFranks/ramasite/main/docs/screenshots/fonts.png)
 
 ## Requirements
 
@@ -27,8 +29,8 @@ If something is missing, the site says what on its first visit, in words you can
 
 ## Installing
 
-1. Download **`light-cms-<version>.zip`** from the [Releases](https://github.com/DaleFranks/light-cms/releases) page. Use that file, not the "Source code" downloads, which can't run on their own.
-2. Unzip it. Upload everything inside the `light-cms` folder into your site's web folder (usually `public_html`), or into a subfolder of it.
+1. Download **`ramasite-<version>.zip`** from the [Releases](https://github.com/DaleFranks/ramasite/releases) page. Use that file, not the "Source code" downloads, which can't run on their own.
+2. Unzip it. Upload everything inside the `ramasite` folder into your site's web folder (usually `public_html`), or into a subfolder of it.
 3. Open the site in your browser. It moves to `https://` by itself if your site has a working certificate, and warns you if it doesn't.
 4. Fill in the setup screen. It first asks for a setup key, which proves the site is yours: open `setup-key.txt` in the folder you uploaded to, using your host's file manager or FTP, and paste in what it holds. Then enter the site's name, and your name, email address and password. The key file is deleted when setup finishes.
 
@@ -46,13 +48,23 @@ Your pages, images, settings and accounts aren't in the release zip, so uploadin
 
 How each part of the admin works: **[docs](docs/README.md)**.
 
+## About the name
+
+Inspired by Arthur C. Clarke's *Rendezvous with Rama*, RamaSite takes its name from a remarkable self-contained world.
+
+Your website deserves the same independence. RamaSite keeps everything in one compact folder: content, themes, images, forms, and more.
+
+No database server. No command line. No complicated infrastructure. Upload it to ordinary shared hosting and you have a little world of your own, ready to run.
+
+RamaSite was called Light CMS before version 0.9.1.
+
 ## License
 
-Light CMS is free and open-source software under the [MIT License](LICENSE). Copyright (c) 2026 Dale Franks.
+RamaSite is free and open-source software under the [MIT License](LICENSE). Copyright (c) 2026 Dale Franks.
 
 ## For developers
 
-Light CMS is built with Laravel and Filament, using SQLite.
+RamaSite is built with Laravel and Filament, using SQLite.
 
 ```bash
 composer install

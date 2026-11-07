@@ -11,7 +11,7 @@ Once the setup screen is done, you're logged in to the admin at `/admin`. A good
 
 ## The Dashboard
 
-![The Dashboard, with quick actions and counts of pages, posts, images and more](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/dashboard.png)
+![The Dashboard, with quick actions and counts of pages, posts, images and more](https://raw.githubusercontent.com/DaleFranks/ramasite/main/docs/screenshots/dashboard.png)
 
 The first screen in the admin shows:
 
@@ -20,4 +20,4 @@ The first screen in the admin shows:
 - **Recent submissions** from all your forms
 - **Recently edited** pages and posts
 
-The version of Light CMS the site is running is shown at the bottom of the admin's menu.
+The version of RamaSite the site is running is shown at the bottom of the admin's menu.

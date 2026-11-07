@@ -150,7 +150,7 @@ class Backup
     private static function instructions(): string
     {
         return <<<'TEXT'
-            Light CMS backup
+            RamaSite backup
             ================
 
             Made with %VERSION%.
@@ -167,7 +167,7 @@ class Backup
 
             To restore the site:
 
-              1. Put a copy of Light CMS on the server: the version the site was
+              1. Put a copy of RamaSite on the server: the version the site was
                  running when this backup was made, or a newer one. A newer one
                  updates the database itself on the first visit.
               2. Upload the files in this zip into the site's folder, replacing the

@@ -1,4 +1,4 @@
-# Light CMS documentation
+# RamaSite documentation
 
 How each screen in the admin (at `/admin`) works.
 

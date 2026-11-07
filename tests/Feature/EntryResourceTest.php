@@ -38,7 +38,7 @@ class EntryResourceTest extends TestCase
 
         Livewire::test(CreateEntry::class)
             ->fillForm([
-                'title' => 'About Light CMS',
+                'title' => 'About RamaSite',
                 'slug' => 'about',
                 'body' => "## Hello\n\nSome **Markdown**.",
                 'type' => EntryType::Page->value,
@@ -97,7 +97,7 @@ class EntryResourceTest extends TestCase
         Livewire::test(CreateEntry::class)
             ->fillForm(['title' => 'About'])
             ->fillForm(['slug' => 'about-us'])
-            ->fillForm(['title' => 'About Light CMS'])
+            ->fillForm(['title' => 'About RamaSite'])
             ->assertSchemaStateSet(['slug' => 'about-us']);
     }
 
@@ -109,8 +109,8 @@ class EntryResourceTest extends TestCase
             ->fillForm(['title' => 'About'])
             ->fillForm(['slug' => 'about-us'])
             ->fillForm(['slug' => ''])
-            ->fillForm(['title' => 'About Light CMS'])
-            ->assertSchemaStateSet(['slug' => 'about-light-cms']);
+            ->fillForm(['title' => 'About RamaSite'])
+            ->assertSchemaStateSet(['slug' => 'about-ramasite']);
     }
 
     public function test_changing_the_title_of_an_existing_entry_keeps_its_slug(): void

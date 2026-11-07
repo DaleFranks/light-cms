@@ -3,10 +3,11 @@
 namespace App\Providers\Filament;
 
 use App\Backup;
+use App\Filament\Auth\AppAuthentication;
 use App\Filament\Auth\EmailAuthentication;
 use App\Filament\Auth\RequestPasswordReset;
 use App\Http\Controllers\BackupDownloadController;
-use Filament\Auth\MultiFactor\App\AppAuthentication;
+use App\Models\Theme;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -34,6 +35,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            // "RamaSite Admin: <site name>" at the top of every admin page and in its tab title
+            ->brandName(fn (): string => self::brandName())
             ->login()
             // "Forgot password?" on the login screen, sent with the site's Email settings
             ->passwordReset(RequestPasswordReset::class)
@@ -85,5 +88,16 @@ class AdminPanelProvider extends PanelProvider
                     ->where('file', Backup::ZIP_NAME_PATTERN)
                     ->name('backup.download');
             });
+    }
+
+    /**
+     * Such as "RamaSite Admin: Dale Franks", or "RamaSite Admin" while the site
+     * has no name or its settings can't be read.
+     */
+    public static function brandName(): string
+    {
+        $siteName = trim((string) rescue(fn (): ?string => Theme::current()->site_name, null, report: false));
+
+        return $siteName === '' ? 'RamaSite Admin' : 'RamaSite Admin: '.$siteName;
     }
 }

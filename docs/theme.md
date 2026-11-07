@@ -8,9 +8,9 @@ Most settings start **empty, meaning automatic**: their value is worked out from
 
 If the settings have changed since you opened the screen, in another browser tab or by another admin, **Save** stops and asks what to do. **Load the latest settings** discards what you've changed on this screen. **Save my version anyway** replaces everything with what's on this screen.
 
-![The Fonts tab, with a live sample under each font](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/fonts.png)
+![The Fonts tab, with a live sample under each font](https://raw.githubusercontent.com/DaleFranks/ramasite/main/docs/screenshots/fonts.png)
 
-![The Colors tab, where empty settings show the automatic value in grey](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/colors.png)
+![The Colors tab, where empty settings show the automatic value in grey](https://raw.githubusercontent.com/DaleFranks/ramasite/main/docs/screenshots/colors.png)
 
 ## Tabs
 

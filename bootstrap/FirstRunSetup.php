@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Gets a freshly uploaded copy of Light CMS ready to start, before Composer or
+ * Gets a freshly uploaded copy of RamaSite ready to start, before Composer or
  * Laravel are loaded.
  *
  * On the first visit there's no .env settings file yet. This checks that the
@@ -288,7 +288,7 @@ final class FirstRunSetup
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Light CMS can't start yet</title>
+                <title>RamaSite can't start yet</title>
                 <style>
                     body { margin: 0; padding: 48px 16px; background: #f8fafc; color: #1e293b; font: 16px/1.6 system-ui, sans-serif; }
                     main { max-width: 640px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; }
@@ -298,7 +298,7 @@ final class FirstRunSetup
             </head>
             <body>
                 <main>
-                    <h1>Light CMS can't start yet</h1>
+                    <h1>RamaSite can't start yet</h1>
                     <p>Your web host needs a few changes before the site can be set up:</p>
                     <ul>{$items}</ul>
                     <p>Once they're made, reload this page.</p>

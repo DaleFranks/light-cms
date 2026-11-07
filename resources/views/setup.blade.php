@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
-    <title>Set up your site | Light CMS</title>
+    <title>Set up your site | RamaSite</title>
     <style>
         body { margin: 0; padding: 48px 16px; background: #f8fafc; color: #1e293b; font: 16px/1.6 system-ui, sans-serif; }
         main { max-width: 520px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; }
@@ -25,7 +25,7 @@
 <body>
     <main>
         <h1>Set up your site</h1>
-        <p class="intro">Light CMS is installed. Name your site and create the account you'll use to run it.</p>
+        <p class="intro">RamaSite is installed. Name your site and create the account you'll use to run it.</p>
 
         @if ($httpsSiteAddress)
             {{-- Shown unless the check below is running, so it still appears without JavaScript --}}

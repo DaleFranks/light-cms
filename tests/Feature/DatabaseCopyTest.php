@@ -18,7 +18,7 @@ class DatabaseCopyTest extends TestCase
         parent::setUp();
 
         // A database file of its own, like a real site's, rather than the tests' in-memory one
-        $this->folder = sys_get_temp_dir().'/light-cms-copy-'.bin2hex(random_bytes(4));
+        $this->folder = sys_get_temp_dir().'/ramasite-copy-'.bin2hex(random_bytes(4));
         File::ensureDirectoryExists($this->folder);
         touch($this->folder.'/site.sqlite');
         config(['database.connections.sqlite.database' => $this->folder.'/site.sqlite']);

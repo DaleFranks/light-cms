@@ -28,7 +28,7 @@ class SetupTest extends TestCase
         config(['app.installation_check' => true]);
 
         // A storage folder of its own, so the real site's "installed" marker is never touched
-        $this->storagePath = sys_get_temp_dir().'/light-cms-setup-'.bin2hex(random_bytes(4));
+        $this->storagePath = sys_get_temp_dir().'/ramasite-setup-'.bin2hex(random_bytes(4));
         File::ensureDirectoryExists($this->storagePath.'/app');
         $this->app->useStoragePath($this->storagePath);
 

@@ -2,7 +2,7 @@
 
 A redirect sends visitors (and search engines) from an address that no longer has a page to a new one. They keep old links and search results working, for example after moving a site from another system.
 
-![The Redirects screen, listing old and new addresses with how often each is used](https://raw.githubusercontent.com/DaleFranks/light-cms/main/docs/screenshots/redirects.png)
+![The Redirects screen, listing old and new addresses with how often each is used](https://raw.githubusercontent.com/DaleFranks/ramasite/main/docs/screenshots/redirects.png)
 
 ## Adding a redirect
 

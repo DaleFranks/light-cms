@@ -6,7 +6,7 @@ use App\Models\Form;
 use Illuminate\Database\Seeder;
 
 /**
- * Creates the old Light CMS's two forms, Contact and Newsletter, as ordinary
+ * Creates the old flat-file CMS's two forms, Contact and Newsletter, as ordinary
  * forms to start from. Each is skipped if the site already has a form with its
  * slug, and can be edited or deleted like any other.
  */

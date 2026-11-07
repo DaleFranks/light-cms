@@ -16,7 +16,7 @@ class FirstRunSetupTest extends TestCase
     {
         parent::setUp();
 
-        $this->root = sys_get_temp_dir().'/light-cms-first-run-'.bin2hex(random_bytes(4));
+        $this->root = sys_get_temp_dir().'/ramasite-first-run-'.bin2hex(random_bytes(4));
 
         foreach (FirstRunSetup::WRITABLE_FOLDERS as $folder) {
             @mkdir($this->root.'/'.$folder, 0777, true);
@@ -25,7 +25,7 @@ class FirstRunSetupTest extends TestCase
         mkdir($this->root.'/vendor');
         touch($this->root.'/vendor/autoload.php');
         file_put_contents($this->root.'/.env.example', implode("\n", [
-            'APP_NAME="Light CMS"',
+            'APP_NAME="RamaSite"',
             'APP_ENV=local',
             'APP_KEY=',
             'APP_DEBUG=true',
@@ -124,7 +124,7 @@ class FirstRunSetupTest extends TestCase
         $this->assertStringContainsString("CACHE_STORE=file\n", $env);
         $this->assertStringContainsString("MAIL_MAILER=sendmail\n", $env);
         $this->assertStringContainsString("QUEUE_CONNECTION=sync\n", $env);
-        $this->assertStringContainsString('APP_NAME="Light CMS"', $env);
+        $this->assertStringContainsString('APP_NAME="RamaSite"', $env);
         $this->assertMatchesRegularExpression('/^APP_KEY=base64:[A-Za-z0-9+\/]{43}=$/m', $env);
         $this->assertFileExists($this->root.'/database/database.sqlite');
         $this->assertSame([], glob($this->root.'/.env.*.tmp'));
@@ -177,7 +177,7 @@ class FirstRunSetupTest extends TestCase
         $page = FirstRunSetup::problemsPage(['<b>Bad</b> & worse']);
 
         $this->assertStringContainsString('<li>&lt;b&gt;Bad&lt;/b&gt; &amp; worse</li>', $page);
-        $this->assertStringContainsString('<title>Light CMS can\'t start yet</title>', $page);
+        $this->assertStringContainsString('<title>RamaSite can\'t start yet</title>', $page);
     }
 
     public function test_the_cms_public_folder_is_taken_out_of_the_entry_point_so_laravel_finds_the_site_folder(): void

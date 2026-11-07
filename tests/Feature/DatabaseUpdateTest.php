@@ -26,7 +26,7 @@ class DatabaseUpdateTest extends TestCase
         config(['app.installation_check' => true]);
 
         // A storage folder of its own, so the real site's markers and backups are never touched
-        $this->storagePath = sys_get_temp_dir().'/light-cms-update-'.bin2hex(random_bytes(4));
+        $this->storagePath = sys_get_temp_dir().'/ramasite-update-'.bin2hex(random_bytes(4));
         File::ensureDirectoryExists($this->storagePath.'/app');
         File::ensureDirectoryExists($this->storagePath.'/framework/cache/data');
         $this->app->useStoragePath($this->storagePath);
@@ -78,7 +78,7 @@ class DatabaseUpdateTest extends TestCase
 
         // The admin says so
         $this->actingAs(User::query()->first())->get('/admin')->assertOk()
-            ->assertSee('The database couldn\'t be updated for this version of Light CMS.', false);
+            ->assertSee('The database couldn\'t be updated for this version of RamaSite.', false);
 
         // Tried again later, and this time it works
         DatabaseCopy::$useVacuumInto = null;
