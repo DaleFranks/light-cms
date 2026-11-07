@@ -145,6 +145,29 @@ class Entry extends Model
     }
 
     /**
+     * The address of a blog's RSS feed.
+     */
+    public function feedUrl(): string
+    {
+        return route('feed', ['blogPath' => $this->path]);
+    }
+
+    /**
+     * The published blogs, whose feeds every page points to so browsers and
+     * feed readers can find them.
+     *
+     * @return Collection<int, Entry>
+     */
+    public static function blogsWithFeeds(): Collection
+    {
+        return self::query()
+            ->published()
+            ->where('type', EntryType::Blog)
+            ->orderBy('title')
+            ->get(['id', 'type', 'title', 'path']);
+    }
+
+    /**
      * The body as HTML, with its shortcodes filled in. A leading "# Heading" is
      * dropped, because the page title is already shown above the content.
      */

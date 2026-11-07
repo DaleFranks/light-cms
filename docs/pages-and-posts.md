@@ -56,4 +56,8 @@ A blog's page shows its own content first, then its published posts as cards: ea
 
 - **Posts per page** (in the Blog box): how many posts are listed before going on to a next page. It starts at 9, which fills three rows of three.
 
+### RSS feed
+
+Every published blog has an RSS feed at its address followed by `/feed.xml`, such as `/articles/feed.xml`, for feed readers and services that pass new posts on (by email, for example). It lists the 20 newest published posts, each with its title, date, featured image and first three sentences, linking to the post for the rest. The feed's description is the blog's **Meta description** (under Search engines & sharing). There's nothing to set up, and every page tells browsers and feed readers where the feeds are.
+
 A blog that has posts can't be deleted or changed to another type; move or delete its posts first.

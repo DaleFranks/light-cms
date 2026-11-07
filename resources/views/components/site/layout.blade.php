@@ -50,6 +50,9 @@
     @endif
     <meta name="twitter:card" content="{{ $shareImage ? 'summary_large_image' : 'summary' }}">
 
+    @foreach ($feeds as $feed)
+        <link rel="alternate" type="application/rss+xml" title="{{ $feed->title }}" href="{{ $feed->feedUrl() }}">
+    @endforeach
     @if ($theme->faviconUrl())
         <link rel="icon" href="{{ $theme->faviconUrl() }}">
     @endif

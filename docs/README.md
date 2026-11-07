@@ -25,4 +25,4 @@ How each screen in the admin (at `/admin`) works.
 - [Backup](backup.md): downloading a backup and restoring one
 - [Upgrading](upgrading.md): installing a new version, what looks different after upgrading, the automatic database update, and what to do if it can't run
 
-Search engines are looked after automatically: every site has a sitemap at `/sitemap.xml` that lists everything published, and a `robots.txt` that points to it.
+Search engines are looked after automatically: every site has a sitemap at `/sitemap.xml` that lists everything published, and a `robots.txt` that points to it. Each blog also has an [RSS feed](pages-and-posts.md#rss-feed).

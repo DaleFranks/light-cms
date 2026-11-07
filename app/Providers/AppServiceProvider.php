@@ -59,6 +59,7 @@ class AppServiceProvider extends ServiceProvider
                 'theme' => Theme::current(),
                 'menu' => Entry::menu(),
                 'footer' => Module::footer(),
+                'feeds' => Entry::blogsWithFeeds(),
             ]);
         });
     }
