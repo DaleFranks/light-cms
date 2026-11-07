@@ -41,13 +41,13 @@ class AdminBrandTest extends TestCase
             ->assertDontSee('RamaSite Admin:');
     }
 
-    public function test_the_brand_ignores_the_app_name_left_in_an_older_sites_settings_file(): void
+    public function test_the_brand_ignores_the_app_name_in_the_settings_file(): void
     {
-        config(['app.name' => 'Light CMS']);
+        config(['app.name' => 'Some Other Name']);
         Theme::factory()->create(['site_name' => 'Dale Franks']);
         $this->actingAs(User::factory()->create());
 
-        $this->get('/admin')->assertOk()->assertDontSee('Light CMS');
+        $this->get('/admin')->assertOk()->assertDontSee('Some Other Name');
     }
 
     public function test_authenticator_apps_list_the_site_without_a_colon_in_its_name(): void

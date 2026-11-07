@@ -56,8 +56,6 @@ Your website deserves the same independence. RamaSite keeps everything in one co
 
 No database server. No command line. No complicated infrastructure. Upload it to ordinary shared hosting and you have a little world of your own, ready to run.
 
-RamaSite was called Light CMS before version 0.9.1.
-
 ## License
 
 RamaSite is free and open-source software under the [MIT License](LICENSE). Copyright (c) 2026 Dale Franks.

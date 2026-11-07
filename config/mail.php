@@ -67,9 +67,9 @@ return [
 
         'sendmail' => [
             'transport' => 'sendmail',
-            // The program PHP's own mail() uses on this server, as the old flat-file CMS
-            // did, so email works without any setting up. It must be run with -t
-            // (or -bs), which most servers' setting already includes.
+            // The program PHP's own mail() uses on this server, so email works without
+            // any setting up. It must be run with -t (or -bs), which most servers'
+            // setting already includes.
             'path' => env('MAIL_SENDMAIL_PATH', (function (): string {
                 $path = trim((string) ini_get('sendmail_path')) ?: '/usr/sbin/sendmail -t -i';
 
