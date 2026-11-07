@@ -46,6 +46,7 @@ Images already in your pages keep working, however they were added.
 - **RSS feeds**: each published blog now has one, at its address followed by `/feed.xml`. See [Pages and posts](pages-and-posts.md#rss-feed).
 - **Canonical addresses**: every page now tells search engines its one true address, on the domain the site was set up on (with or without `www.`, as set up). The sitemap, RSS feeds and social media links use it too.
 - **Preview**: a draft or scheduled page or post can be seen as visitors will see it, by anyone signed in to the admin. Use **Preview** on its edit screen. See [Pages and posts](pages-and-posts.md#previewing).
+- **Pages are always rebuilt after an upgrade.** Before, a site whose files kept their original dates when unzipped (as when extracting the zip on the server) could go on showing pages from the old version's templates.
 - **Analytics & Verification**: a new screen for Google Analytics, Tag Manager, Meta Pixel, Search Console and Bing verification, and code from any other service. It starts empty, so pages are unchanged until you fill it in. See [Analytics & Verification](analytics.md).
 
 The first two of these come from the `.htaccess` file in the site's folder. If you kept your own `.htaccess` rather than uploading the release's, add these lines to it. Put this just above `<IfModule mod_rewrite.c>`:

@@ -10,6 +10,7 @@ use App\Models\Entry;
 use App\Models\Form;
 use App\Models\Module;
 use App\Models\Theme;
+use App\Version;
 use Filament\Forms\Components\MarkdownEditor;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        config(['view.compiled' => Version::compiledViewsPath(storage_path('framework/views'))]);
     }
 
     /**
