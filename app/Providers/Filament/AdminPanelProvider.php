@@ -37,6 +37,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             // "RamaSite Admin: <site name>" at the top of every admin page and in its tab title
             ->brandName(fn (): string => self::brandName())
+            // The RamaSite mark beside that name, and as the admin's tab icon
+            ->brandLogo(fn (): View => view('filament.brand', ['brandName' => self::brandName()]))
+            ->brandLogoHeight('auto')
+            ->favicon(fn (): string => 'data:image/svg+xml;base64,'.base64_encode(view('filament.ramasite-mark', ['standalone' => true])->render()))
             ->login()
             // "Forgot password?" on the login screen, sent with the site's Email settings
             ->passwordReset(RequestPasswordReset::class)
