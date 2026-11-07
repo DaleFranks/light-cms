@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\EntryType;
+use App\Filament\Resources\Entries\EntryResource;
 use App\Models\Entry;
 use App\Models\Redirect;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +17,7 @@ class EntryController extends Controller
      */
     public function home(): View
     {
-        return $this->render($this->findPublished(Entry::HOME_PATH) ?? abort(404));
+        return $this->render($this->findViewable(Entry::HOME_PATH) ?? abort(404));
     }
 
     /**
@@ -30,7 +31,7 @@ class EntryController extends Controller
             return redirect()->route('home', status: 301);
         }
 
-        $entry = $this->findPublished($path);
+        $entry = $this->findViewable($path);
 
         // An address with no page may have been redirected, such as an old page's address
         if ($entry === null) {
@@ -44,33 +45,43 @@ class EntryController extends Controller
     }
 
     /**
-     * The published entry at a path, or nothing (also for a post whose blog isn't published).
+     * The entry at a path, if the person asking may see it: visitors only see
+     * published entries, while a signed-in admin also sees drafts and
+     * scheduled entries, to preview them.
      */
-    private function findPublished(string $path): ?Entry
+    private function findViewable(string $path): ?Entry
     {
         $entry = Entry::query()
-            ->published()
             ->where('path', $path)
             ->with('blog')
             ->first();
 
-        if ($entry?->type === EntryType::Post && ! $entry->blog?->isPublished()) {
-            return null;
-        }
-
-        return $entry;
+        return $entry?->isVisibleToVisitors() || auth()->check() ? $entry : null;
     }
 
+    /**
+     * Show an entry, with a notice and a link back to its editor when it's a
+     * preview of something visitors can't see.
+     */
     private function render(Entry $entry): View
     {
+        $previewNotice = $entry->previewNotice();
+        $preview = [
+            'previewNotice' => $previewNotice,
+            'editUrl' => $previewNotice !== null ? EntryResource::getUrl('edit', ['record' => $entry]) : null,
+        ];
+
         return match ($entry->type) {
-            EntryType::Page => view('site.page', ['entry' => $entry]),
-            EntryType::Post => view('site.post', ['entry' => $entry]),
-            EntryType::Blog => $this->renderBlog($entry),
+            EntryType::Page => view('site.page', ['entry' => $entry, ...$preview]),
+            EntryType::Post => view('site.post', ['entry' => $entry, ...$preview]),
+            EntryType::Blog => $this->renderBlog($entry, $preview),
         };
     }
 
-    private function renderBlog(Entry $blog): View
+    /**
+     * @param  array{previewNotice: ?string, editUrl: ?string}  $preview
+     */
+    private function renderBlog(Entry $blog, array $preview): View
     {
         $posts = $blog->posts()
             ->published()
@@ -81,6 +92,7 @@ class EntryController extends Controller
             'entry' => $blog,
             'posts' => $posts,
             'previewImages' => Entry::previewImageUrls($posts->items()),
+            ...$preview,
         ]);
     }
 }

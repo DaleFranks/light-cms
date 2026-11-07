@@ -23,8 +23,14 @@ Some addresses are used by the CMS itself and can't be taken: `admin`, `setup`, 
 
 ## Publishing
 
-- **Status**: **Draft** pages are only visible in the admin; **Published** ones are on the site.
+- **Status**: **Draft** pages are hidden from visitors; **Published** ones are on the site.
 - **Publish date**: leave it empty to publish straight away. A date in the future schedules the page or post: it appears on its own at that time. For posts, the date is shown with the post and in the blog's list.
+
+### Previewing
+
+**Preview**, at the top of a page's edit screen, opens the page in a new tab as it was last saved, so save first to see your latest changes. It works for drafts, scheduled pages and posts, and posts in a blog that isn't published yet. A bar at the bottom says why visitors can't see the page yet, with a link back to edit it. Only someone signed in to the admin can open a preview; visitors get the "not found" page, as before. Previews are left out of search engines, the menu and the blog's list of posts.
+
+Once a page is on the site, the same button says **View**. The eye icon beside **Edit** in the list of pages and posts does the same.
 
 When a published page's address changes (its slug, or its blog's), a [redirect](redirects.md) from the old address is added automatically, so links and search results keep working.
 

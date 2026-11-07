@@ -6,6 +6,8 @@
     'layout' => \App\EntryLayout::Standard,
     'shareImage' => null,
     'shareType' => 'website',
+    'previewNotice' => null,
+    'editUrl' => null,
 ])
 
 @php
@@ -22,6 +24,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{{ $title }} | {{ $theme->site_name }}</title>
+    @if ($previewNotice)
+        <meta name="robots" content="noindex, nofollow">
+    @endif
     @if (filled($description))
         <meta name="description" content="{{ $description }}">
     @endif
@@ -62,7 +67,7 @@
         {!! $theme->safeCustomCss() !!}
     </style>
 </head>
-<body class="{{ $theme->bodyClasses() }} layout-{{ $layout->value }}">
+<body class="{{ $theme->bodyClasses() }} layout-{{ $layout->value }}{{ $previewNotice ? ' has-preview-bar' : '' }}">
     <header class="site-header">
         @if ($theme->hasTopBar())
             <div class="top-bar theme-{{ $theme->top_bar_style->value }} align-{{ $theme->top_bar_alignment->value }}">
@@ -147,6 +152,15 @@
             {!! $footer->html($menu) !!}
         </div>
     </footer>
+
+    @if ($previewNotice)
+        <div class="preview-bar" role="status">
+            <span><strong>Preview.</strong> {{ $previewNotice }}</span>
+            @if ($editUrl)
+                <a href="{{ $editUrl }}">Edit</a>
+            @endif
+        </div>
+    @endif
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

@@ -2342,3 +2342,39 @@ body.layout-landing .prose > .module + :not(.module) {
 body.layout-landing .prose > :not(.module):has(+ .module) {
     margin-bottom: 3rem;
 }
+
+/* Shown only to signed-in admins viewing a draft or scheduled entry. The
+   space below the footer keeps the bar from covering the end of the page. */
+body.has-preview-bar {
+    padding-bottom: 96px;
+}
+
+.preview-bar {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1300;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 16px;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #1f2937;
+    color: #fff;
+    font-family: system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.preview-bar a {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: underline;
+}

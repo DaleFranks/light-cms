@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Entries\Tables;
 
 use App\EntryStatus;
 use App\EntryType;
+use App\Filament\ViewOnSiteAction;
 use App\Models\Entry;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -60,6 +61,9 @@ class EntriesTable
                     ->options(EntryStatus::class),
             ])
             ->recordActions([
+                ViewOnSiteAction::make()
+                    ->iconButton()
+                    ->tooltip(fn (Entry $record): string => $record->isVisibleToVisitors() ? 'View on the site' : 'Preview'),
                 EditAction::make(),
             ])
             ->toolbarActions([

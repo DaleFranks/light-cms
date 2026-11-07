@@ -396,6 +396,42 @@ class Entry extends Model
     }
 
     /**
+     * Whether visitors can see the entry on the site: it's published, and so
+     * is the blog of a post.
+     */
+    public function isVisibleToVisitors(): bool
+    {
+        if (! $this->isPublished()) {
+            return false;
+        }
+
+        return $this->type !== EntryType::Post || $this->blog?->isPublished() === true;
+    }
+
+    /**
+     * What a signed-in admin is told when viewing an entry visitors can't see
+     * yet, or nothing when visitors can see it.
+     */
+    public function previewNotice(): ?string
+    {
+        if ($this->isVisibleToVisitors()) {
+            return null;
+        }
+
+        $kind = strtolower($this->type->getLabel());
+
+        if ($this->status === EntryStatus::Draft) {
+            return "This {$kind} is a draft, so visitors can't see it.";
+        }
+
+        if (! $this->isPublished()) {
+            return "This {$kind} will appear on the site on {$this->published_at->format('F j, Y \\a\\t g:i a')}.";
+        }
+
+        return "This post's blog isn't on the site yet, so visitors can't see the post.";
+    }
+
+    /**
      * Only entries that are published and whose publish date has arrived.
      */
     #[Scope]

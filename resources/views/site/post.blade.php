@@ -5,6 +5,8 @@
     :share-image="$entry->shareImage()"
     share-type="article"
     :layout="$entry->layout"
+    :preview-notice="$previewNotice"
+    :edit-url="$editUrl"
     :current-path="$entry->blog->path"
 >
     @if ($entry->layout->showsTitle())

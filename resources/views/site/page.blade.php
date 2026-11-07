@@ -4,6 +4,8 @@
     :keywords="$entry->meta_keywords"
     :share-image="$entry->shareImage()"
     :layout="$entry->layout"
+    :preview-notice="$previewNotice"
+    :edit-url="$editUrl"
     :current-path="$entry->path"
 >
     @if ($entry->layout->showsTitle())
